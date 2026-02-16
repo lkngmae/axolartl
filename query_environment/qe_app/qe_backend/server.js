@@ -7,21 +7,28 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-
 app.post('/search', async (req, res) => {
-  try {
-    const { query } = req.body;
+  const {
+    query,
+    userLat,
+    userLng,
+    maxRadius,
+    currentTime,
+    selectedCategory
+  } = req.body;
 
-    console.log("\nIncoming search:", query);
+  const results = await searchEvents(
+    query,
+    userLat,
+    userLng,
+    maxRadius,
+    currentTime,
+    selectedCategory
+  );
 
-    const results = await searchEvents(query);
-
-    res.json(results);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Search failed" });
-  }
+  res.json(results);
 });
+
 
 app.listen(3000, () => {
   console.log("Server running on http://localhost:3000");

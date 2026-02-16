@@ -53,6 +53,13 @@ function PreferencesScreen({ navigation }) {
 function SearchScreen({ route }) {
   const { preference } = route.params;
 
+  const [customLat, setCustomLat] = useState('');
+  const [customLng, setCustomLng] = useState('');
+  const [customTime, setCustomTime] = useState('');
+
+  const [results, setResults] = useState([]);
+
+
   const [query, setQuery] = useState('');
   const [radius, setRadius] = useState('');
 
@@ -79,27 +86,52 @@ function SearchScreen({ route }) {
     setCurrentTime(formattedTime);
   }, []);
 
+
   const handleSearch = async () => {
+    // Determine which location to use
+    const finalLat = customLat !== ''
+      ? parseFloat(customLat)
+      : userLocation.latitude;
+
+    const finalLng = customLng !== ''
+      ? parseFloat(customLng)
+      : userLocation.longitude;
+
+    const finalTime = customTime !== ''
+      ? customTime
+      : currentTime;
+
+    console.log("\n===== FINAL FILTER VALUES USED =====");
+    console.log("Latitude:", finalLat);
+    console.log("Longitude:", finalLng);
+    console.log("Time:", finalTime);
+    console.log("Radius:", radius);
+
     try {
-      const response = await fetch('http://your_ip_here:3000/search', {
+      const response = await fetch('http://your-ip-here:3000/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          query: query
+          query,
+          userLat: finalLat,
+          userLng: finalLng,
+          maxRadius: parseFloat(radius),
+          currentTime: finalTime,
+          selectedCategory: preference
         })
       });
 
       const data = await response.json();
 
       console.log("Search Results:", data);
+      setResults(data); 
 
     } catch (error) {
       console.error("Search error:", error);
     }
   };
-
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -137,10 +169,47 @@ function SearchScreen({ route }) {
         keyboardType="numeric"
       />
 
+      {/* Optional Custom Location */}
+      <Text style={styles.label}>Override Latitude (optional)</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="e.g. 40.7128"
+        value={customLat}
+        onChangeText={setCustomLat}
+        keyboardType="numeric"
+      />
+
+      <Text style={styles.label}>Override Longitude (optional)</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="e.g. -74.0060"
+        value={customLng}
+        onChangeText={setCustomLng}
+        keyboardType="numeric"
+      />
+
+      {/* Optional Custom Time */}
+      <Text style={styles.label}>Override Time (optional, HH:MM)</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="18:30"
+        value={customTime}
+        onChangeText={setCustomTime}
+      />
+
+
       <Button
-  title="Search"
-  onPress={handleSearch}
-/>
+        title="Search"
+        onPress={handleSearch}
+      />
+
+      {results.map((result) => (
+        <Text style={styles.value}>
+          {JSON.stringify(result, null, 2)}
+
+        </Text>)
+      )}
+
     </ScrollView>
   );
 }
