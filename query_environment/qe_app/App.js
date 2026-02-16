@@ -4,11 +4,11 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useState, useEffect } from 'react';
 
 
-import { 
-  View, 
-  Text, 
-  Button, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  Button,
+  TouchableOpacity,
   StyleSheet,
   TextInput,
   ScrollView
@@ -79,6 +79,28 @@ function SearchScreen({ route }) {
     setCurrentTime(formattedTime);
   }, []);
 
+  const handleSearch = async () => {
+    try {
+      const response = await fetch('http://your_ip_here:3000/search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: query
+        })
+      });
+
+      const data = await response.json();
+
+      console.log("Search Results:", data);
+
+    } catch (error) {
+      console.error("Search error:", error);
+    }
+  };
+
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Search Locations</Text>
@@ -116,17 +138,9 @@ function SearchScreen({ route }) {
       />
 
       <Button
-        title="Search"
-        onPress={() => {
-          console.log({
-            preference,
-            query,
-            radius,
-            userLocation,
-            currentTime
-          });
-        }}
-      />
+  title="Search"
+  onPress={handleSearch}
+/>
     </ScrollView>
   );
 }
@@ -152,20 +166,20 @@ export default function App() {
 
 const styles = StyleSheet.create({
   label: {
-  marginTop: 15,
-  marginBottom: 5,
-  fontWeight: '600'
-},
-value: {
-  marginBottom: 15,
-  fontStyle: 'italic'
-},
-input: {
-  borderWidth: 1,
-  borderRadius: 8,
-  padding: 10,
-  marginBottom: 10
-},
+    marginTop: 15,
+    marginBottom: 5,
+    fontWeight: '600'
+  },
+  value: {
+    marginBottom: 15,
+    fontStyle: 'italic'
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10
+  },
 
   container: {
     flex: 1,

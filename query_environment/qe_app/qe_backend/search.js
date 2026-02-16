@@ -43,11 +43,13 @@ async function searchEvents(rawQuery) {
     normalizedMap[r.input_term] = r.normalized_term;
   });
 
-  const normalizedTokens = tokens.map(t =>
-    normalizedMap[t] ? normalizedMap[t] : t
-  );
+const normalizedTokens = tokens.map(t =>
+  normalizedMap[t] ? normalizedMap[t] : t
+).map(t => t.trim().toLowerCase());
+
 
   console.log("\nNormalized Tokens:", normalizedTokens);
+
 
   // 4️⃣ Get total number of events (N)
   const [[{ totalEvents }]] = await connection.execute(
@@ -57,13 +59,16 @@ async function searchEvents(rawQuery) {
   console.log("\nTotal Events (N):", totalEvents);
 
   // 5️⃣ Get document frequency (df) per term
-  const [dfRows] = await connection.execute(
-    `SELECT keyword, COUNT(DISTINCT event_id) as df
-     FROM inverted_index
-     WHERE keyword IN (?)
-     GROUP BY keyword`,
-    [normalizedTokens]
-  );
+const placeholders = normalizedTokens.map(() => '?').join(',');
+
+const [dfRows] = await connection.execute(
+  `SELECT keyword, COUNT(DISTINCT event_id) as df
+   FROM inverted_index
+   WHERE keyword IN (${placeholders})
+   GROUP BY keyword`,
+  normalizedTokens
+);
+
 
   const dfMap = {};
   dfRows.forEach(r => {
@@ -84,12 +89,13 @@ async function searchEvents(rawQuery) {
   console.log("\nQuery Vector (TF-IDF):", queryVector);
 
   // 7️⃣ Get candidate events from inverted_index
-  const [candidateRows] = await connection.execute(
-    `SELECT DISTINCT event_id
-     FROM inverted_index
-     WHERE keyword IN (?)`,
-    [normalizedTokens]
-  );
+const [candidateRows] = await connection.execute(
+  `SELECT DISTINCT event_id
+   FROM inverted_index
+   WHERE keyword IN (${placeholders})`,
+  normalizedTokens
+);
+
 
   const candidateEventIds = candidateRows.map(r => r.event_id);
 
@@ -101,12 +107,25 @@ async function searchEvents(rawQuery) {
   }
 
   // 8️⃣ Get event keyword data
-  const [eventKeywordRows] = await connection.execute(
-    `SELECT event_id, keyword, term_frequency
-     FROM event_keywords
-     WHERE event_id IN (?)`,
-    [candidateEventIds]
-  );
+const eventPlaceholders = candidateEventIds.map(() => '?').join(',');
+const termPlaceholders = normalizedTokens.map(() => '?').join(',');
+
+const sql = `
+  SELECT event_id, keyword, term_frequency
+  FROM event_keywords
+  WHERE event_id IN (${eventPlaceholders})
+  AND keyword IN (${termPlaceholders})
+`;
+
+const params = [...candidateEventIds, ...normalizedTokens];
+
+console.log("\nEventKeyword SQL:", sql);
+console.log("Params:", params);
+
+const [eventKeywordRows] = await connection.execute(sql, params);
+
+console.log("EventKeywordRows:", eventKeywordRows);
+
 
   // Build event vectors
   const eventVectors = {};
@@ -117,7 +136,9 @@ async function searchEvents(rawQuery) {
   eventKeywordRows.forEach(row => {
     const { event_id, keyword, term_frequency } = row;
 
-    if (!normalizedTokens.includes(keyword)) return;
+   const cleanKeyword = keyword.trim().toLowerCase();
+
+if (!normalizedTokens.includes(cleanKeyword)) return;
 
     const df = dfMap[keyword] || 1;
     const idf = Math.log(totalEvents / df);
@@ -185,6 +206,11 @@ async function searchEvents(rawQuery) {
 
   console.log("\n===== FINAL SORTED RESULTS =====");
   console.log(finalResults);
+
+  console.log("CandidateEventIds:", candidateEventIds);
+console.log("NormalizedTokens:", normalizedTokens);
+console.log("EventKeywordRows:", eventKeywordRows);
+
 
   await connection.end();
 
