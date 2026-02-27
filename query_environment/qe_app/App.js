@@ -1,7 +1,11 @@
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import React, { useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import MapView, { Marker } from 'react-native-maps';
+import * as Location from 'expo-location';
+
+
 
 
 import {
@@ -23,7 +27,7 @@ function PreferencesScreen({ navigation }) {
   const options = ['people', 'nightlife', 'nature', 'architecture', 'urban'];
 
   return (
-    <View style={styles.container}>
+    <View style={styles.preferencesContainer}>
       <Text style={styles.title}>What do you want to draw?</Text>
 
       {options.map((item) => (
@@ -52,12 +56,19 @@ function PreferencesScreen({ navigation }) {
 
 function SearchScreen({ route }) {
   const { preference } = route.params;
+  const mapRef = useRef(null);
 
   const [customLat, setCustomLat] = useState('');
   const [customLng, setCustomLng] = useState('');
   const [customTime, setCustomTime] = useState('');
 
   const [results, setResults] = useState([]);
+  const [mapRegion, setMapRegion] = useState({
+    latitude: 33.6437,
+    longitude: -117.8391,
+    latitudeDelta: 0.08,
+    longitudeDelta: 0.08
+  });
 
 
   const [query, setQuery] = useState('');
@@ -67,27 +78,68 @@ function SearchScreen({ route }) {
   const [userLocation, setUserLocation] = useState(null);
 
   useEffect(() => {
-    // Fake user location (NYC example)
-    const fakeLocation = {
-      latitude: 33.6437,
-      longitude: -117.8391
+    const initializeLocation = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+
+      if (status !== 'granted') {
+        const fallback = {
+          latitude: 33.6437,
+          longitude: -117.8391
+        };
+        setUserLocation(fallback);
+        setMapRegion((prev) => ({
+          ...prev,
+          latitude: fallback.latitude,
+          longitude: fallback.longitude
+        }));
+        if (mapRef.current) {
+          mapRef.current.animateToRegion({
+            latitude: fallback.latitude,
+            longitude: fallback.longitude,
+            latitudeDelta: 0.08,
+            longitudeDelta: 0.08
+          }, 400);
+        }
+      } else {
+        const position = await Location.getCurrentPositionAsync({});
+        const current = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude
+        };
+        setUserLocation(current);
+        setMapRegion((prev) => ({
+          ...prev,
+          latitude: current.latitude,
+          longitude: current.longitude
+        }));
+        if (mapRef.current) {
+          mapRef.current.animateToRegion({
+            latitude: current.latitude,
+            longitude: current.longitude,
+            latitudeDelta: 0.08,
+            longitudeDelta: 0.08
+          }, 400);
+        }
+      }
+
+      const now = new Date();
+      const formattedTime = now.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      });
+      setCurrentTime(formattedTime);
     };
 
-    setUserLocation(fakeLocation);
-
-    // Get current time automatically
-    const now = new Date();
-    const formattedTime = now.toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false
-    });
-
-    setCurrentTime(formattedTime);
+    initializeLocation();
   }, []);
 
 
   const handleSearch = async () => {
+    if (!userLocation && (customLat === '' || customLng === '')) {
+      return;
+    }
+
     // Determine which location to use
     const finalLat = customLat !== ''
       ? parseFloat(customLat)
@@ -126,7 +178,41 @@ function SearchScreen({ route }) {
       const data = await response.json();
 
       console.log("Search Results:", data);
-      setResults(data); 
+      setResults(data);
+
+      if (data.length > 0) {
+        const coordinates = data
+          .slice(0, 10)
+          .map((result) => ({
+            latitude: parseFloat(result.latitude),
+            longitude: parseFloat(result.longitude)
+          }))
+          .filter((coord) => !Number.isNaN(coord.latitude) && !Number.isNaN(coord.longitude));
+
+        if (coordinates.length > 0) {
+          setMapRegion((prev) => ({
+            ...prev,
+            latitude: coordinates[0].latitude,
+            longitude: coordinates[0].longitude
+          }));
+
+          if (mapRef.current) {
+            if (coordinates.length > 1) {
+              mapRef.current.fitToCoordinates(coordinates, {
+                edgePadding: { top: 40, right: 40, bottom: 40, left: 40 },
+                animated: true
+              });
+            } else {
+              mapRef.current.animateToRegion({
+                latitude: coordinates[0].latitude,
+                longitude: coordinates[0].longitude,
+                latitudeDelta: 0.02,
+                longitudeDelta: 0.02
+              }, 500);
+            }
+          }
+        }
+      }
 
     } catch (error) {
       console.error("Search error:", error);
@@ -134,13 +220,43 @@ function SearchScreen({ route }) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      style={styles.searchScreen}
+      contentContainerStyle={styles.searchContainer}
+      keyboardShouldPersistTaps="handled"
+    >
       <Text style={styles.title}>Search Locations</Text>
+      <View style={styles.mapContainer}>
+        <MapView
+          ref={mapRef}
+          style={styles.map}
+          initialRegion={mapRegion}
+          showsUserLocation
+          showsMyLocationButton
+        >
+          {results.slice(0, 10).map((result) => {
+            const latitude = parseFloat(result.latitude);
+            const longitude = parseFloat(result.longitude);
+            if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
+              return null;
+            }
+
+            return (
+              <Marker
+                key={result.id}
+                coordinate={{ latitude, longitude }}
+                title={result.name || 'Untitled Location'}
+                description={`${Math.round(result.distance_meters || 0)}m away`}
+              />
+            );
+          })}
+        </MapView>
+      </View>
 
       <Text style={styles.label}>Selected preference:</Text>
       <Text style={styles.value}>{preference}</Text>
 
-      <Text style={styles.label}>Your Location (fake for now):</Text>
+      <Text style={styles.label}>Your Location:</Text>
       {userLocation && (
         <Text style={styles.value}>
           {userLocation.latitude}, {userLocation.longitude}
@@ -234,6 +350,29 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
+  searchScreen: {
+    flex: 1
+  },
+  searchContainer: {
+    padding: 20,
+    paddingBottom: 36
+  },
+  preferencesContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20
+  },
+  mapContainer: {
+    width: '100%',
+    height: 260,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 12
+  },
+  map: {
+    width: '100%',
+    height: '100%'
+  },
   label: {
     marginTop: 15,
     marginBottom: 5,
@@ -250,11 +389,6 @@ const styles = StyleSheet.create({
     marginBottom: 10
   },
 
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20
-  },
   title: {
     fontSize: 22,
     marginBottom: 20,
