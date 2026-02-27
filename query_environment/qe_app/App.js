@@ -61,7 +61,7 @@ function SearchScreen({ route }) {
 
 
   const [query, setQuery] = useState('');
-  const [radius, setRadius] = useState('');
+  const [radius, setRadius] = useState('10000');
 
   const [currentTime, setCurrentTime] = useState('');
   const [userLocation, setUserLocation] = useState(null);
@@ -69,8 +69,8 @@ function SearchScreen({ route }) {
   useEffect(() => {
     // Fake user location (NYC example)
     const fakeLocation = {
-      latitude: 40.7127,
-      longitude: -74.0059
+      latitude: 33.6437,
+      longitude: -117.8391
     };
 
     setUserLocation(fakeLocation);
