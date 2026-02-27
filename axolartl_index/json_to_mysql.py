@@ -1,6 +1,7 @@
 import json
 import mysql.connector
 from mysql.connector import Error
+from typing import Dict, Iterable, List, Set
 
 DB_CONFIG = {
     'host': 'localhost',
@@ -11,55 +12,70 @@ DB_CONFIG = {
 
 GEOJSON_FILE = 'raw_overpass_data.geojson'
 
-KEYWORD_CATEGORIES = {
-    'beach': ['nature', 'ocean', 'sea', 'seaside', 'sand', 'water', 'waves', 'coast', 'shore', 'sunset', 'horizon', 'blue'],
-    'water': ['nature', 'water', 'lake', 'pond', 'reflection', 'blue', 'calm'],
-    'wetland': ['nature', 'wetland', 'marsh', 'moss', 'tide'],
-    'greenery': ['nature', 'green', 'plants', 'trees', 'grass', 'quiet', 'serene', 'garden', 'park', 'floral'],
-    'busy_street': ['urban', 'busy', 'people', 'crowds', 'street', 'city', 'walk', 'movement', 'chaos', 'life'],
-    'modern': ['urban', 'modern', 'architecture', 'glass', 'concrete', 'city', 'lines', 'geometric'],
-    'pier': ['structure', 'ocean', 'perspective', 'iconic', 'wood', 'pillars', 'pier', 'fishing', 'vanishing point'],
-    'bridge': ['structure', 'bridge', 'perspective', 'engineering', 'crossing', 'geometry'],
-    'history': ['history', 'old', 'ruins', 'decay', 'stone', 'ancient', 'weathered', 'rustic'],
-    'art': ['art', 'sculpture', 'culture', 'statue', 'creative', 'monument', 'installation'],
-    'view': ['view', 'panorama', 'landscape', 'horizon', 'scenic', 'lookout', 'high']
+IGNORED_PREFIXES = ('tiger:', 'source:', '@')
+NON_SEMANTIC_KEYS = {
+    'name',
+    'name:en',
+    'name:es',
+    'old_name',
+    'alt_name',
+    'description',
+    'operator',
+    'ref',
+    'wikidata',
+    'wikipedia',
+    'website',
+    'contact:website',
+    'phone',
+    'fixme',
+    'note',
 }
+KEYWORD_TERM_MAX_LEN = 50
 
-def get_artistic_keywords(tags):
-    """Returns a list of keywords for querying based off location tags."""
-    keywords = set() 
 
-    if tags.get('natural') in ['beach', 'coastline']:
-        keywords.update(KEYWORD_CATEGORIES['beach'])
-        
-    if tags.get('natural') in ['water', 'wetland']:
-        keywords.update(KEYWORD_CATEGORIES['water'])
-        
-    if tags.get('leisure') in ['park', 'garden']:
-        keywords.update(KEYWORD_CATEGORIES['greenery'])
-    
-    if tags.get('highway') == 'pedestrian' or tags.get('place') == 'square':
-        keywords.update(KEYWORD_CATEGORIES['busy_street'])
-        
-    if tags.get('landuse') in ['retail', 'plaza', 'commercial']:
-        keywords.update(KEYWORD_CATEGORIES['modern'])
+def normalize_tag_value(value) -> str:
+    """Normalizes OSM tag values to keyword-safe lowercase strings."""
+    if value is None:
+        return ''
+    if isinstance(value, bool):
+        value = 'yes' if value else 'no'
+    normalized = str(value).strip().lower()
+    return normalized
 
-    if tags.get('man_made') == 'pier':
-        keywords.update(KEYWORD_CATEGORIES['pier'])
-        
-    if tags.get('bridge') == 'yes':
-        keywords.update(KEYWORD_CATEGORIES['bridge'])
-        
-    if 'historic' in tags:
-        keywords.update(KEYWORD_CATEGORIES['history'])
-    
-    if tags.get('tourism') == 'artwork':
-        keywords.update(KEYWORD_CATEGORIES['art'])
-        
-    if tags.get('tourism') == 'viewpoint':
-        keywords.update(KEYWORD_CATEGORIES['view'])
 
-    return list(keywords)
+def is_meaningful_tag(key: str, value: str) -> bool:
+    """Filters out noisy/metadata tags and empty values."""
+    if not key or not value:
+        return False
+    if any(key.startswith(prefix) for prefix in IGNORED_PREFIXES):
+        return False
+    if key in NON_SEMANTIC_KEYS:
+        return False
+    if len(value) > 80:
+        return False
+    return True
+
+
+def get_osm_keywords(tags: Dict[str, object]) -> List[str]:
+    """
+    Returns deduplicated keywords directly derived from OSM properties.
+    Includes special mappings and general key:value tags for meaningful fields.
+    """
+    keywords: Set[str] = set()
+    normalized_tags: Dict[str, str] = {}
+
+    for raw_key, raw_value in tags.items():
+        key = str(raw_key).strip().lower()
+        value = normalize_tag_value(raw_value)
+        if not is_meaningful_tag(key, value):
+            continue
+        normalized_tags[key] = value
+
+        keywords.add(f'{key}:{value}')
+
+    # Preserve existing schema compatibility: keywords.term is VARCHAR(50).
+    bounded_keywords = [term for term in keywords if len(term) <= KEYWORD_TERM_MAX_LEN]
+    return sorted(bounded_keywords)
 
 def get_or_create_keyword_id(cursor, term):
     """Finds a keyword's ID. If it doesn't exist, creates it."""
@@ -74,6 +90,8 @@ def get_or_create_keyword_id(cursor, term):
 
 def insert_data():
     """Inserts all data in GEOJSON_FILE to database described in DB_CONFIG"""
+    conn = None
+    cursor = None
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         if not conn.is_connected():
@@ -85,52 +103,87 @@ def insert_data():
         with open(GEOJSON_FILE, 'r') as f:
             data = json.load(f)
 
-        print(f"Processing {len(data['features'])} locations...")
+        features: Iterable[Dict[str, object]] = data.get('features', [])
+        total_features = len(features)
+        print(f"Processing {total_features} features from {GEOJSON_FILE}...")
 
-        for feature in data['features']:
-            props = feature['properties']
-            geometry = feature['geometry']
-            
+        processed = 0
+        skipped = 0
+
+        for index, feature in enumerate(features, start=1):
+            props = feature.get('properties', {})
+            geometry = feature.get('geometry', {})
+
             # Extract Data.
             osm_id = props.get('@id') # Overpass usually returns IDs like "node/12345"
             # Clean ID to be an integer (remove "node/" or "way/")
-            clean_id = int(''.join(filter(str.isdigit, str(osm_id))))
-            
+            clean_id_str = ''.join(filter(str.isdigit, str(osm_id)))
+            if not clean_id_str:
+                skipped += 1
+                continue
+            clean_id = int(clean_id_str)
+
             # Get Name (set to "Untitled Location" if missing).
             name = props.get('name', 'Untitled Artistic Spot')
-            
+
             # Get Coordinates (GeoJSON is [Lon, Lat])
-            lon = geometry['coordinates'][0]
-            lat = geometry['coordinates'][1]
+            coordinates = geometry.get('coordinates', [])
+            if not isinstance(coordinates, list) or len(coordinates) < 2:
+                skipped += 1
+                continue
+            lon, lat = coordinates[0], coordinates[1]
 
-            # Generate Keywords based on tags.
-            tags = props 
-            art_keywords = get_artistic_keywords(tags)
+            # Always clear existing links first so reruns are deterministic.
+            cursor.execute("DELETE FROM location_keywords WHERE location_id = %s", (clean_id,))
 
-            if not art_keywords:
-                continue # Skip locations that didn't match any keywords
+            # Generate OSM keywords directly from tags.
+            tags = props
+            osm_keywords = get_osm_keywords(tags)
+
+            if not osm_keywords:
+                skipped += 1
+                continue
 
             # Insert Location
             # Note: ST_GeomFromText uses 'POINT(longitude latitude)' order.
             insert_loc_query = """
             INSERT INTO locations (id, name, latitude, longitude, coordinates)
             VALUES (%s, %s, %s, %s, ST_GeomFromText('POINT(%s %s)'))
-            ON DUPLICATE KEY UPDATE name = VALUES(name);
+            ON DUPLICATE KEY UPDATE
+                name = VALUES(name),
+                latitude = VALUES(latitude),
+                longitude = VALUES(longitude),
+                coordinates = VALUES(coordinates);
             """
             cursor.execute(insert_loc_query, (clean_id, name, lat, lon, lon, lat))
 
-            # Insert Keywords
-            for term in art_keywords:
+            # Insert keyword mappings.
+            location_keyword_rows = []
+            for term in osm_keywords:
                 kw_id = get_or_create_keyword_id(cursor, term)
-                
-                insert_loc_key_query = """
-                INSERT IGNORE INTO location_keywords (location_id, keyword_id)
-                VALUES (%s, %s)
-                """
-                cursor.execute(insert_loc_key_query, (clean_id, kw_id))
+                location_keyword_rows.append((clean_id, kw_id))
+
+            if location_keyword_rows:
+                cursor.executemany(
+                    """
+                    INSERT IGNORE INTO location_keywords (location_id, keyword_id)
+                    VALUES (%s, %s)
+                    """,
+                    location_keyword_rows
+                )
+
+            processed += 1
+            if index % 250 == 0 or index == total_features:
+                print(
+                    f"Processed {index}/{total_features} features "
+                    f"(indexed={processed}, skipped={skipped})"
+                )
 
         conn.commit()
-        print("yayayayay! Database populated.")
+        print(
+            f"Done. Indexed {processed} locations, skipped {skipped} "
+            f"out of {total_features} features."
+        )
 
     except Error as e:
         print(f"Error: {e}")

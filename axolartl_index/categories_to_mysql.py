@@ -1,6 +1,7 @@
 import json
 import mysql.connector
 from mysql.connector import Error
+from typing import Dict, Iterable, List, Set
 
 DB_CONFIG = {
     'host': 'localhost',
@@ -11,89 +12,91 @@ DB_CONFIG = {
 
 GEOJSON_FILE = 'raw_overpass_data.geojson'
 
-KEYWORD_CATEGORIES = {
-    'beach': ['nature', 'ocean', 'sea', 'seaside', 'sand', 'water', 'waves', 'coast', 'shore', 'sunset', 'horizon', 'blue'],
-    'water': ['nature', 'water', 'lake', 'pond', 'reflection', 'blue', 'calm'],
-    'wetland': ['nature', 'wetland', 'marsh', 'moss', 'tide'],
-    'greenery': ['nature', 'green', 'plants', 'trees', 'grass', 'quiet', 'serene', 'garden', 'park', 'floral'],
-    'busy_street': ['urban', 'busy', 'people', 'crowds', 'street', 'city', 'walk', 'movement', 'chaos', 'life'],
-    'modern': ['urban', 'modern', 'architecture', 'glass', 'concrete', 'city', 'lines', 'geometric'],
-    'pier': ['structure', 'ocean', 'perspective', 'iconic', 'wood', 'pillars', 'pier', 'fishing', 'vanishing point'],
-    'bridge': ['structure', 'bridge', 'perspective', 'engineering', 'crossing', 'geometry'],
-    'history': ['history', 'old', 'ruins', 'decay', 'stone', 'ancient', 'weathered', 'rustic'],
-    'art': ['art', 'sculpture', 'culture', 'statue', 'creative', 'monument', 'installation'],
-    'view': ['view', 'panorama', 'landscape', 'horizon', 'scenic', 'lookout', 'high']
-}
 
-def get_artistic_data(tags):
-    """Returns (keywords, categories) based on location tags."""
-    keywords = set()
-    categories = set()
+def normalize(value) -> str:
+    if value is None:
+        return ''
+    if isinstance(value, bool):
+        value = 'yes' if value else 'no'
+    return str(value).strip().lower()
 
-    if tags.get('natural') in ['beach', 'coastline']:
-        keywords.update(KEYWORD_CATEGORIES['beach'])
+
+def derive_categories(tags: Dict[str, object]) -> List[str]:
+    """
+    Derives high-level categories from real OSM tags.
+    Keeps category logic separate from keyword logic.
+    """
+    normalized = {str(k).lower(): normalize(v) for k, v in tags.items()}
+    categories: Set[str] = set()
+
+    natural = normalized.get('natural')
+    leisure = normalized.get('leisure')
+    tourism = normalized.get('tourism')
+    highway = normalized.get('highway')
+    man_made = normalized.get('man_made')
+    landuse = normalized.get('landuse')
+    bridge = normalized.get('bridge')
+    historic = normalized.get('historic')
+    water = normalized.get('water')
+
+    # Values below are constrained to values that exist in raw_overpass_data.geojson.
+    if natural in {'beach'}:
         categories.add('beach')
 
-    if tags.get('natural') in ['water', 'wetland']:
-        keywords.update(KEYWORD_CATEGORIES['water'])
-        categories.add('water')
-
-    if tags.get('leisure') in ['park', 'garden']:
-        keywords.update(KEYWORD_CATEGORIES['greenery'])
+    if (
+        leisure in {'park', 'garden', 'dog_park'}
+        or landuse in {'grass'}
+    ):
         categories.add('greenery')
 
-    if tags.get('highway') == 'pedestrian' or tags.get('place') == 'square':
-        keywords.update(KEYWORD_CATEGORIES['busy_street'])
-        categories.add('busy_street')
+    if (
+        bridge == 'yes'
+        or man_made in {'bridge', 'pier'}
+        or tourism == 'viewpoint'
+    ):
+        categories.add('structure')
 
-    if tags.get('landuse') in ['retail', 'plaza', 'commercial']:
-        keywords.update(KEYWORD_CATEGORIES['modern'])
-        categories.add('modern')
+    if (
+        natural in {'water', 'wetland'}
+        or water in {'lake', 'pond', 'reservoir', 'river', 'stream', 'basin', 'fountain'}
+    ):
+        categories.add('water')
 
-    if tags.get('man_made') == 'pier':
-        keywords.update(KEYWORD_CATEGORIES['pier'])
-        categories.add('pier')
-
-    if tags.get('bridge') == 'yes':
-        keywords.update(KEYWORD_CATEGORIES['bridge'])
-        categories.add('bridge')
-
-    if 'historic' in tags:
-        keywords.update(KEYWORD_CATEGORIES['history'])
+    if historic:
         categories.add('history')
 
-    if tags.get('tourism') == 'artwork':
-        keywords.update(KEYWORD_CATEGORIES['art'])
+    if tourism in {'artwork'}:
         categories.add('art')
 
-    if tags.get('tourism') == 'viewpoint':
-        keywords.update(KEYWORD_CATEGORIES['view'])
+    if tourism == 'viewpoint':
         categories.add('view')
 
-    return list(keywords), list(categories)
+    if (
+        highway in {
+            'footway', 'pedestrian', 'secondary', 'motorway', 'motorway_link',
+            'cycleway', 'primary', 'path', 'tertiary', 'unclassified', 'service',
+            'residential', 'steps', 'primary_link', 'secondary_link', 'track'
+        }
+        or landuse in {'residential'}
+        or normalized.get('place') in {'islet'}
+    ):
+        categories.add('urban')
 
-def get_or_create_category_id(cursor, name):
-    cursor.execute("SELECT id FROM categories WHERE name = %s", (name,))
+    return sorted(categories)
+
+
+def get_or_create_category_id(cursor, name: str) -> int:
+    cursor.execute("SELECT id FROM categories WHERE LOWER(name) = LOWER(%s)", (name,))
     result = cursor.fetchone()
     if result:
         return result[0]
-
     cursor.execute("INSERT INTO categories (name) VALUES (%s)", (name,))
     return cursor.lastrowid
 
-def get_or_create_keyword_id(cursor, term):
-    """Finds a keyword's ID. If it doesn't exist, creates it."""
-    cursor.execute("SELECT id FROM keywords WHERE term = %s", (term,))
-    result = cursor.fetchone()
-    if result:
-        return result[0]
-    
-    # If the keyword does not exist, insert it.
-    cursor.execute("INSERT INTO keywords (term) VALUES (%s)", (term,))
-    return cursor.lastrowid
 
-def insert_data():
-    """Inserts all data in GEOJSON_FILE to database described in DB_CONFIG"""
+def insert_data() -> None:
+    conn = None
+    cursor = None
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         if not conn.is_connected():
@@ -105,60 +108,85 @@ def insert_data():
         with open(GEOJSON_FILE, 'r') as f:
             data = json.load(f)
 
-        print(f"Processing {len(data['features'])} locations...")
+        features: Iterable[Dict[str, object]] = data.get('features', [])
+        total_features = len(features)
+        print(f"Processing {total_features} features from {GEOJSON_FILE}...")
 
-        for feature in data['features']:
-            props = feature['properties']
-            geometry = feature['geometry']
-            
-            # Extract Data.
-            osm_id = props.get('@id') # Overpass usually returns IDs like "node/12345"
-            # Clean ID to be an integer (remove "node/" or "way/")
-            clean_id = int(''.join(filter(str.isdigit, str(osm_id))))
-            
-            # Get Name (set to "Untitled Location" if missing).
+        indexed = 0
+        skipped = 0
+
+        for index, feature in enumerate(features, start=1):
+            props = feature.get('properties', {})
+            geometry = feature.get('geometry', {})
+
+            osm_id = props.get('@id')
+            clean_id_str = ''.join(filter(str.isdigit, str(osm_id)))
+            if not clean_id_str:
+                skipped += 1
+                continue
+            clean_id = int(clean_id_str)
+
             name = props.get('name', 'Untitled Artistic Spot')
-            
-            # Get Coordinates (GeoJSON is [Lon, Lat])
-            lon = geometry['coordinates'][0]
-            lat = geometry['coordinates'][1]
+            coords = geometry.get('coordinates', [])
+            if not isinstance(coords, list) or len(coords) < 2:
+                skipped += 1
+                continue
+            lon, lat = coords[0], coords[1]
 
-            # Generate Keywords based on tags.
-            tags = props 
-            art_keywords, art_categories = get_artistic_data(tags)
+            # Always clear existing links first so reruns are deterministic.
+            cursor.execute("DELETE FROM location_categories WHERE location_id = %s", (clean_id,))
 
-            if not art_keywords:
-                continue # Skip locations that didn't match any keywords
+            categories = derive_categories(props)
+            if not categories:
+                skipped += 1
+                continue
 
-            # Insert Location
-            # Note: ST_GeomFromText uses 'POINT(longitude latitude)' order.
-            insert_loc_query = """
-            INSERT INTO locations (id, name, latitude, longitude, coordinates)
-            VALUES (%s, %s, %s, %s, ST_GeomFromText('POINT(%s %s)'))
-            ON DUPLICATE KEY UPDATE name = VALUES(name);
-            """
-            cursor.execute(insert_loc_query, (clean_id, name, lat, lon, lon, lat))
-
-             # Insert Categories
-            for category_name in art_categories:
-                cat_id = get_or_create_category_id(cursor, category_name)
-
-                insert_loc_cat_query = """
-                INSERT IGNORE INTO location_categories (location_id, category_id)
-                VALUES (%s, %s)
+            cursor.execute(
                 """
-                cursor.execute(insert_loc_cat_query, (clean_id, cat_id))
-           
+                INSERT INTO locations (id, name, latitude, longitude, coordinates)
+                VALUES (%s, %s, %s, %s, ST_GeomFromText('POINT(%s %s)'))
+                ON DUPLICATE KEY UPDATE
+                    name = VALUES(name),
+                    latitude = VALUES(latitude),
+                    longitude = VALUES(longitude),
+                    coordinates = VALUES(coordinates)
+                """,
+                (clean_id, name, lat, lon, lon, lat)
+            )
+
+            rows = []
+            for category_name in categories:
+                cat_id = get_or_create_category_id(cursor, category_name)
+                rows.append((clean_id, cat_id))
+
+            if rows:
+                cursor.executemany(
+                    """
+                    INSERT IGNORE INTO location_categories (location_id, category_id)
+                    VALUES (%s, %s)
+                    """,
+                    rows
+                )
+
+            indexed += 1
+            if index % 250 == 0 or index == total_features:
+                print(
+                    f"Processed {index}/{total_features} features "
+                    f"(indexed={indexed}, skipped={skipped})"
+                )
 
         conn.commit()
-        print("yayayayay! Database populated.")
-
+        print(
+            f"Done. Indexed categories for {indexed} locations, skipped {skipped} "
+            f"out of {total_features} features."
+        )
     except Error as e:
         print(f"Error: {e}")
     finally:
         if conn and conn.is_connected():
             cursor.close()
             conn.close()
+
 
 if __name__ == '__main__':
     insert_data()
