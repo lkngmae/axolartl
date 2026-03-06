@@ -3,6 +3,89 @@ const mysql = require('mysql2/promise');
 const STOPWORDS = new Set([
     'the', 'a', 'an', 'and', 'or', 'but', 'is', 'are', 'of', 'to', 'in', 'on', 'at', 'for'
 ]);
+const DEBUG_VECTORS = process.env.DEBUG_VECTORS === 'true';
+const SYNONYM_MAP = {
+    park: ['leisure:park'],
+    bridge: ['bridge', 'man_made:bridge'],
+    beach: ['natural:beach']
+};
+
+function tokenizeQuery(rawQuery) {
+    if (!rawQuery) return [];
+    return rawQuery
+        .toLowerCase()
+        .split(/\s+/)
+        // Keep delimiters commonly present in OSM-style keywords.
+        .map(t => t.replace(/[^\w:|/.\-]/g, ''))
+        .filter(t => t);
+}
+
+function buildExpandedTerms(tokens) {
+    const exactTerms = new Set();
+    const plainTokens = new Set();
+
+    tokens.forEach(token => {
+        if (token.includes(':')) {
+            exactTerms.add(token);
+            return;
+        }
+
+        if (!STOPWORDS.has(token)) {
+            plainTokens.add(token);
+            exactTerms.add(token);
+        }
+
+        const synonyms = SYNONYM_MAP[token] || [];
+        synonyms.forEach(s => exactTerms.add(s));
+    });
+
+    return {
+        exactTerms: [...exactTerms],
+        plainTokens: [...plainTokens]
+    };
+}
+
+async function fetchMatchingKeywords(connection, exactTerms, plainTokens) {
+    const termMap = new Map();
+
+    if (exactTerms.length > 0) {
+        const placeholders = exactTerms.map(() => '?').join(',');
+        const [rows] = await connection.execute(
+            `SELECT id, term
+             FROM keywords
+             WHERE term IN (${placeholders})`,
+            exactTerms
+        );
+        rows.forEach(r => termMap.set(r.id, r));
+    }
+
+    // For plain words, also match key:value terms where key or value equals the token.
+    if (plainTokens.length > 0) {
+        const clauses = [];
+        const params = [];
+        plainTokens.forEach(token => {
+            clauses.push('(term = ? OR term LIKE ? OR term LIKE ? OR term LIKE ? OR term LIKE ? OR term LIKE ?)');
+            params.push(
+                token,
+                `${token}:%`,
+                `%:${token}`,
+                `%:${token}|%`,
+                `%|${token}|%`,
+                `%|${token}`
+            );
+        });
+
+        const [rows] = await connection.execute(
+            `SELECT id, term
+             FROM keywords
+             WHERE ${clauses.join(' OR ')}`,
+            params
+        );
+        rows.forEach(r => termMap.set(r.id, r));
+    }
+
+    return [...termMap.values()];
+}
 
 function toRadians(deg) {
     return deg * (Math.PI / 180);
@@ -23,302 +106,197 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
-function isOpen(openHours, currentTime) {
-    if (openHours === "24h") return true;
 
-    const [open, close] = openHours.split("-");
-    return currentTime >= open && currentTime <= close;
-}
-
-
-async function searchEvents(rawQuery, userLat, userLng, maxRadius, currentTime, selectedCategory) {
+async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTime,
+    selectedCategory) {
     const connection = await mysql.createConnection({
         host: 'localhost',
         user: 'root',
-        database: 'cs125_test'
+        database: 'axolartl'
     });
 
-    console.log("\n===== RAW QUERY =====");
-    console.log(rawQuery);
+    try {
+        const tokens = tokenizeQuery(rawQuery);
+        if (tokens.length === 0) return [];
 
-    // 1️⃣ Tokenize + lowercase
-    let tokens = rawQuery
-        .toLowerCase()
-        .split(/\s+/)
-        .map(t => t.replace(/[^\w]/g, ''));
+        const { exactTerms, plainTokens } = buildExpandedTerms(tokens);
+        const keywordRows = await fetchMatchingKeywords(connection, exactTerms, plainTokens);
+        if (keywordRows.length === 0) return [];
 
-    // 2️⃣ Remove stopwords
-    tokens = tokens.filter(t => t && !STOPWORDS.has(t));
+        const keywordIds = keywordRows.map(r => r.id);
 
-    console.log("\nTokens after stopword removal:", tokens);
+        // 3️⃣ Total locations (N)
+        const [[{ totalLocations }]] = await connection.execute(
+            `SELECT COUNT(*) AS totalLocations FROM locations`
+        );
 
-    if (tokens.length === 0) {
-        console.log("No valid tokens.");
-        return [];
-    }
+        // 4️⃣ Get DF per keyword
+        const dfPlaceholders = keywordIds.map(() => '?').join(',');
 
-    // 3️⃣ Normalize using query_expansion
-    const [normRows] = await connection.execute(
-        `SELECT input_term, normalized_term
-     FROM query_expansion
-     WHERE input_term IN (?)`,
-        [tokens]
-    );
+        const [dfRows] = await connection.execute(
+            `SELECT keyword_id, COUNT(location_id) AS df
+             FROM location_keywords
+             WHERE keyword_id IN (${dfPlaceholders})
+             GROUP BY keyword_id`,
+            keywordIds
+        );
 
-    const normalizedMap = {};
-    normRows.forEach(r => {
-        normalizedMap[r.input_term] = r.normalized_term;
-    });
+        const dfMap = {};
+        dfRows.forEach(r => {
+            dfMap[r.keyword_id] = r.df;
+        });
 
-    const normalizedTokens = tokens.map(t =>
-        normalizedMap[t] ? normalizedMap[t] : t
-    ).map(t => t.trim().toLowerCase());
-
-
-    console.log("\nNormalized Tokens:", normalizedTokens);
-
-
-    // 4️⃣ Get total number of events (N)
-    const [[{ totalEvents }]] = await connection.execute(
-        `SELECT COUNT(*) as totalEvents FROM events`
-    );
-
-    console.log("\nTotal Events (N):", totalEvents);
-
-    // 5️⃣ Get document frequency (df) per term
-    const placeholders = normalizedTokens.map(() => '?').join(',');
-
-    const [dfRows] = await connection.execute(
-        `SELECT keyword, COUNT(DISTINCT event_id) as df
-   FROM inverted_index
-   WHERE keyword IN (${placeholders})
-   GROUP BY keyword`,
-        normalizedTokens
-    );
-
-
-    const dfMap = {};
-    dfRows.forEach(r => {
-        dfMap[r.keyword] = r.df;
-    });
-
-    console.log("\nDocument Frequencies:", dfMap);
-
-    // 6️⃣ Compute query TF-IDF
-    const queryVector = {};
-    normalizedTokens.forEach(term => {
-        const tf = 1; // simple binary tf for query
-        const df = dfMap[term] || 1;
-        const idf = Math.log(totalEvents / df);
-        queryVector[term] = tf * idf;
-    });
-
-    console.log("\nQuery Vector (TF-IDF):", queryVector);
-
-    // 7️⃣ Get candidate events from inverted_index
-    const [candidateRows] = await connection.execute(
-        `SELECT DISTINCT event_id
-   FROM inverted_index
-   WHERE keyword IN (${placeholders})`,
-        normalizedTokens
-    );
-
-
-    const candidateEventIds = candidateRows.map(r => r.event_id);
-
-    console.log("\nCandidate Events:", candidateEventIds);
-
-    if (candidateEventIds.length === 0) {
-        console.log("No matching events.");
-        return [];
-    }
-
-    // 8️⃣ Get event keyword data
-    const eventPlaceholders = candidateEventIds.map(() => '?').join(',');
-    const termPlaceholders = normalizedTokens.map(() => '?').join(',');
-
-    const sql = `
-  SELECT event_id, keyword, term_frequency
-  FROM event_keywords
-  WHERE event_id IN (${eventPlaceholders})
-  AND keyword IN (${termPlaceholders})
-`;
-
-    const params = [...candidateEventIds, ...normalizedTokens];
-
-    console.log("\nEventKeyword SQL:", sql);
-    console.log("Params:", params);
-
-    const [eventKeywordRows] = await connection.execute(sql, params);
-
-    console.log("EventKeywordRows:", eventKeywordRows);
-
-
-    // Build event vectors
-    const eventVectors = {};
-    candidateEventIds.forEach(id => {
-        eventVectors[id] = {};
-    });
-
-    eventKeywordRows.forEach(row => {
-        const { event_id, keyword, term_frequency } = row;
-
-        const cleanKeyword = keyword.trim().toLowerCase();
-
-        if (!normalizedTokens.includes(cleanKeyword)) return;
-
-        const df = dfMap[keyword] || 1;
-        const idf = Math.log(totalEvents / df);
-
-        eventVectors[event_id][keyword] = term_frequency * idf;
-    });
-
-    console.log("\nEvent Vectors:", eventVectors);
-
-    // 9️⃣ Compute cosine similarity
-    const scores = [];
-
-    for (const eventId of candidateEventIds) {
-        const eventVector = eventVectors[eventId];
-
-        let dotProduct = 0;
-        let eventNorm = 0;
+        // 5️⃣ Build query vector (TF = 1)
+        const queryVector = {};
         let queryNorm = 0;
 
-        for (const term of Object.keys(queryVector)) {
-            const qVal = queryVector[term];
-            const eVal = eventVector[term] || 0;
-
-            dotProduct += qVal * eVal;
-            queryNorm += qVal * qVal;
-        }
-
-        for (const val of Object.values(eventVector)) {
-            eventNorm += val * val;
+        for (const id of keywordIds) {
+            const df = dfMap[id] || 1;
+            const idf = Math.log(totalLocations / df);
+            queryVector[id] = idf;
+            queryNorm += idf * idf;
         }
 
         queryNorm = Math.sqrt(queryNorm);
-        eventNorm = Math.sqrt(eventNorm);
 
-        const cosine = eventNorm === 0 ? 0 : dotProduct / (queryNorm * eventNorm);
-
-        scores.push({
-            event_id: eventId,
-            score: cosine
-        });
-    }
-
-    console.log("\nCosine Scores:", scores);
-
-    // 🔟 Sort descending
-    scores.sort((a, b) => b.score - a.score);
-
-    // 1️⃣1️⃣ Fetch event info
-    const [eventRows] = await connection.execute(
-        `SELECT *
-     FROM events;`,
-        [scores.map(s => s.event_id)]
-    );
-
-    const eventMap = {};
-    console.log("E")
-    eventRows.forEach(e => {
-        console.log(e);
-        eventMap[e.event_id] = e;
-    });
-
-    console.log("\n===== APPLYING FILTERS + FINAL SCORING =====");
-
-    const finalResults = [];
-
-
-    for (const s of scores) {
-
-        for (const key in eventMap) {
-            console.log(key);
-            console.log(eventMap[key])
-        }
-
-console.log(s.event_id)
-
-        console.log("HERE")
-        const event = eventMap[s.event_id];
-        console.log(event);
-        console.log("FUN")
-        const cosine = s.score;
-
-        if (!event) {
-            console.log("no event");
-            continue;
-        }
-
-        // ---- DISTANCE ----
-        const distance = haversineDistance(
-            userLat,
-            userLng,
-            event.latitude,
-            event.longitude
+        // 6️⃣ Candidate locations
+        const [candidateRows] = await connection.execute(
+            `SELECT DISTINCT location_id
+            FROM location_keywords
+            WHERE keyword_id IN (${dfPlaceholders})`,
+            keywordIds
         );
 
-        console.log(`Event ${event.name} distance: ${distance.toFixed(2)} meters`);
+        let categoryId = null;
 
-        if (distance > maxRadius) {
-            console.log("❌ Removed (outside radius)");
-            continue;
+        if (selectedCategory) {
+            const [catRows] = await connection.execute(
+                `SELECT id FROM categories WHERE LOWER(name) = LOWER(?)`,
+                [selectedCategory]
+            );
+
+            if (catRows.length > 0) {
+                categoryId = catRows[0].id;
+            }
         }
 
-        // ---- OPEN HOURS ----
-        if (!isOpen(event.open_hours, currentTime)) {
-            console.log("❌ Removed (closed at this time)");
-            continue;
+        const candidateIds = candidateRows.map(r => r.location_id);
+        if (candidateIds.length === 0) return [];
+
+        let categoryMatches = new Set();
+
+        if (categoryId) {
+            const locPlaceholders = candidateIds.map(() => '?').join(',');
+
+            const [catRows] = await connection.execute(
+                `SELECT location_id
+                FROM location_categories
+                WHERE category_id = ?
+                AND location_id IN (${locPlaceholders})`,
+                [categoryId, ...candidateIds]
+            );
+
+            categoryMatches = new Set(catRows.map(r => r.location_id));
         }
 
-        // ---- DISTANCE SCORE (0-1) ----
-        const distanceScore = 1 - (distance / maxRadius);
+        // 7️⃣ Get location-keyword pairs
+        const locPlaceholders = candidateIds.map(() => '?').join(',');
 
-        // ---- CATEGORY SCORE ----
-        const categoryScore =
-            event.category === selectedCategory ? 1 : 0;
+        const [locationKeywordRows] = await connection.execute(
+            `SELECT location_id, keyword_id
+             FROM location_keywords
+             WHERE location_id IN (${locPlaceholders})
+             AND keyword_id IN (${dfPlaceholders})`,
+            [...candidateIds, ...keywordIds]
+        );
 
-        // ---- FINAL WEIGHTED SCORE ----
-        const finalScore =
-            0.60 * cosine +
-            0.30 * distanceScore +
-            0.10 * categoryScore;
+        // Build location vectors
+        const locationVectors = {};
+        candidateIds.forEach(id => locationVectors[id] = {});
 
-        console.log(`
-  Event: ${event.name}
-    Cosine: ${cosine.toFixed(3)}
-    DistanceScore: ${distanceScore.toFixed(3)}
-    CategoryScore: ${categoryScore}
-    FinalScore: ${finalScore.toFixed(3)}
-  `);
-
-
-
-        finalResults.push({
-            ...event,
-            cosine_score: cosine,
-            distance_meters: distance,
-            final_score: finalScore
+        locationKeywordRows.forEach(row => {
+            const { location_id, keyword_id } = row;
+            const df = dfMap[keyword_id] || 1;
+            const idf = Math.log(totalLocations / df);
+            locationVectors[location_id][keyword_id] = idf; // TF=1
         });
+
+        // 8️⃣ Fetch location info
+        const [locationRows] = await connection.execute(
+            `SELECT * FROM locations
+             WHERE id IN (${locPlaceholders})`,
+            candidateIds
+        );
+
+        const locationMap = {};
+        locationRows.forEach(l => {
+            locationMap[l.id] = l;
+        });
+
+        // 9️⃣ Compute cosine + distance scoring
+        const results = [];
+
+        for (const locId of candidateIds) {
+            const vector = locationVectors[locId];
+            if (DEBUG_VECTORS) {
+                console.log("Location vector:", vector);
+            }
+
+            let dot = 0;
+            let locNorm = 0;
+
+            for (const termId in queryVector) {
+                const qVal = queryVector[termId];
+                const lVal = vector[termId] || 0;
+                dot += qVal * lVal;
+            }
+
+            for (const val of Object.values(vector)) {
+                locNorm += val * val;
+            }
+
+            locNorm = Math.sqrt(locNorm);
+
+            const cosine =
+                locNorm === 0 || queryNorm === 0
+                    ? 0
+                    : dot / (queryNorm * locNorm);
+
+            const location = locationMap[locId];
+            if (!location) continue;
+
+            const distance = haversineDistance(
+                userLat,
+                userLng,
+                location.latitude,
+                location.longitude
+            );
+
+            if (distance > maxRadius) continue;
+
+            const distanceScore = 1 - (distance / maxRadius);
+
+            const categoryScore = categoryMatches.has(locId) ? 1 : 0;
+
+            const finalScore =
+                0.55 * cosine +
+                0.30 * distanceScore +
+                0.15 * categoryScore;
+
+            results.push({
+                ...location,
+                cosine_score: cosine,
+                category_score: categoryScore,
+                distance_meters: distance,
+                final_score: finalScore
+            });
+        }
+
+        results.sort((a, b) => b.final_score - a.final_score);
+        return results;
+    } finally {
+        await connection.end();
     }
-
-    // Sort by final score
-    finalResults.sort((a, b) => b.final_score - a.final_score);
-
-    console.log("\n===== FINAL SORTED RESULTS =====");
-    console.log(finalResults);
-
-
-    console.log("CandidateEventIds:", candidateEventIds);
-    console.log("NormalizedTokens:", normalizedTokens);
-    console.log("EventKeywordRows:", eventKeywordRows);
-
-
-    await connection.end();
-
-    return finalResults;
 }
 
-module.exports = searchEvents;
+module.exports = searchLocations;

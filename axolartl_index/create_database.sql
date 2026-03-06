@@ -21,3 +21,16 @@ CREATE TABLE IF NOT EXISTS location_keywords (
     FOREIGN KEY (location_id) REFERENCES locations(id),
     FOREIGN KEY (keyword_id) REFERENCES keywords(id)
 );
+
+CREATE TABLE categories (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) UNIQUE
+);
+
+CREATE TABLE location_categories (
+    location_id BIGINT,
+    category_id INT,
+    PRIMARY KEY (location_id, category_id),
+    FOREIGN KEY (location_id) REFERENCES locations(id),
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+);

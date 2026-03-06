@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const searchEvents = require('./search'); // the TF-IDF file
+const searchLocations = require('./search'); // the TF-IDF file
 
 const app = express();
 
@@ -17,7 +17,7 @@ app.post('/search', async (req, res) => {
     selectedCategory
   } = req.body;
 
-  const results = await searchEvents(
+  const results = await searchLocations(
     query,
     userLat,
     userLng,
