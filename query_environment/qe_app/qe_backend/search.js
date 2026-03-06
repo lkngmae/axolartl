@@ -10,6 +10,35 @@ const SYNONYM_MAP = {
     beach: ['natural:beach']
 };
 
+async function getGooglePlaceImage(lat, lon, keyword = "") {
+    const searchUrl = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json");
+    searchUrl.search = new URLSearchParams({
+        location: '${late},${lon}',
+        radius: 200,
+        keyword: keyword, // TODO: adding multiple keywords in a list?
+        key: GOOGLE_PLACES_API_KEY
+    });
+
+    try{
+        const response = await fetch(searchUrl);
+        const data = await response.json();
+
+        // If a location is found and the location has photos.
+        if (data.results && data.results.length > 0) {
+            const place = data.results[0];
+            if(place.photos && place.photos.length > 0) {
+                // Maxwidth 800 px to ensure loading time is quick.
+                const photoURL = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoReference}&key=${GOOGLE_PLACES_API_KEY}`;
+                return photoURL;
+            }
+        }
+    } catch (error) {
+        console.error ("Google Places API Error: ", error);    
+    }
+
+    return null;
+}
+
 function tokenizeQuery(rawQuery) {
     if (!rawQuery) return [];
     return rawQuery
@@ -105,7 +134,6 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
 }
-
 
 async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTime,
     selectedCategory) {
@@ -293,6 +321,34 @@ async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTim
         }
 
         results.sort((a, b) => b.final_score - a.final_score);
+        const topResults = results.slice(0, 10);
+        const THIRTY_DAYS_MS = 30 * 34 * 60 * 60 * 1000;
+        const now = Date.now();
+
+        for (let loc of topResults) {
+            const lastUpdated = loc.image_updated_at ? new Date(loc.image_updated_at).getTime();
+            const needsUpdate = !loc.image_url || (now - lastUpdated > THIRTY_DAYS_MS);
+            if (needsUpdate) {
+                    const newImageUrl = await getGooglePlaceImage(loc.latitude, loc.longitude, selectedCategory || "");
+                    
+                    if (newImageUrl) {
+                        loc.image_url = newImageUrl;
+                        connection.execute(
+                            `UPDATE locations SET image_url = ?, image_updated_at = NOW() WHERE id = ?`, 
+                            [loc.image_url, loc.id]
+                        ).catch(err => console.error("DB Update Error:", err));
+                    } else {
+                        connection.execute(
+                            `UPDATE locations SET image_updated_at = NOW() WHERE id = ?`, 
+                            [loc.id]
+                        ).catch(err => console.error("DB Update Error:", err));
+                        
+                        if (!loc.image_url) {
+                            loc.image_url = "https://via.placeholder.com/300x200?text=No+Google+Street+View";
+                        }
+                    }
+                }
+            }
         return results;
     } finally {
         await connection.end();

@@ -6,7 +6,8 @@ CREATE TABLE IF NOT EXISTS locations (
     latitude DECIMAL(10, 8),
     longitude DECIMAL(11, 8),
     coordinates POINT NOT NULL,
-    SPATIAL INDEX(coordinates)
+    SPATIAL INDEX(coordinates), 
+    image_updated_at TIMESTAMP NULL DEFAULT NULL;
 );
 
 CREATE TABLE IF NOT EXISTS keywords (
