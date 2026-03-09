@@ -1,4 +1,6 @@
 const mysql = require('mysql2/promise');
+const { getCurrentWeather, classifyWeather } = require('./weather');
+const { computeLocationWeatherScore } = require('./weatherScoring');
 
 const STOPWORDS = new Set([
     'the', 'a', 'an', 'and', 'or', 'but', 'is', 'are', 'of', 'to', 'in', 'on', 'at', 'for'
@@ -183,6 +185,19 @@ async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTim
         const candidateIds = candidateRows.map(r => r.location_id);
         if (candidateIds.length === 0) return [];
 
+        let currentWeather = null;
+        let weatherClass = 'great_outdoor';
+
+        try {
+            currentWeather = await getCurrentWeather(userLat, userLng);
+            console.log(currentWeather);
+            weatherClass = classifyWeather(currentWeather);
+            console.log(weatherClass);
+        } catch (error) {
+            // Fallback keeps ranking functional if weather API fails.
+            console.warn(error.message);
+        }
+
         let categoryMatches = new Set();
 
         if (categoryId) {
@@ -209,6 +224,21 @@ async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTim
              AND keyword_id IN (${dfPlaceholders})`,
             [...candidateIds, ...keywordIds]
         );
+
+        const [allLocationKeywordRows] = await connection.execute(
+            `SELECT location_id, keyword_id
+             FROM location_keywords
+             WHERE location_id IN (${locPlaceholders})`,
+            candidateIds
+        );
+
+        const locationKeywordIds = {};
+        candidateIds.forEach(id => {
+            locationKeywordIds[id] = [];
+        });
+        allLocationKeywordRows.forEach(row => {
+            locationKeywordIds[row.location_id].push(row.keyword_id);
+        });
 
         // Build location vectors
         const locationVectors = {};
@@ -277,16 +307,24 @@ async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTim
             const distanceScore = 1 - (distance / maxRadius);
 
             const categoryScore = categoryMatches.has(locId) ? 1 : 0;
+            const weatherScore = computeLocationWeatherScore(
+                locationKeywordIds[locId],
+                weatherClass
+            );
 
             const finalScore =
-                0.55 * cosine +
-                0.30 * distanceScore +
-                0.15 * categoryScore;
+                0.5 * cosine +
+                0.1 * categoryScore +
+                0.25 * distanceScore +
+                0.15 * weatherScore;
 
             results.push({
                 ...location,
                 cosine_score: cosine,
                 category_score: categoryScore,
+                weather_score: weatherScore,
+                weather_class: weatherClass,
+                weather: currentWeather,
                 distance_meters: distance,
                 final_score: finalScore
             });

@@ -24,7 +24,7 @@ const Stack = createNativeStackNavigator();
 function PreferencesScreen({ navigation }) {
   const [selected, setSelected] = useState(null);
 
-  const options = ['people', 'nightlife', 'nature', 'architecture', 'urban'];
+  const options = ['structure', 'urban', 'greenery', 'water', 'history', 'beach', 'view', 'art'];
 
   return (
     <View style={styles.preferencesContainer}>
