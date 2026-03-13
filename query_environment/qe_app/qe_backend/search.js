@@ -1,3 +1,4 @@
+require('dotenv').config();
 const mysql = require('mysql2/promise');
 const { getCurrentWeather, classifyWeather } = require('./weather');
 const { computeLocationWeatherScore } = require('./weatherScoring');
@@ -11,6 +12,40 @@ const SYNONYM_MAP = {
     bridge: ['bridge', 'man_made:bridge'],
     beach: ['natural:beach']
 };
+
+async function getGooglePlaceImage(lat, lon, keyword = "") {
+    const searchUrl = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json");
+    searchUrl.search = new URLSearchParams({
+        location: `${lat},${lon}`,
+        radius: 1000,
+        keyword: keyword, // TODO: adding multiple keywords in a list?
+        key: process.env.GOOGLE_PLACES_API_KEY
+    });
+
+    try{
+        console.log('Sending Google Places request...')
+        const response = await fetch(searchUrl);
+        const data = await response.json();
+        console.log(`Google Places Responded with status:${data.status}`)
+        // If a location is found and the location has photos.
+        if (data.results && data.results.length > 0) {
+            console.log(`Found ${data.results.length} places nearby. Scanning for photos...`);
+            for (let i = 0; i < data.results.length; i++) {
+                const place = data.results[i];
+                if(place.photos && place.photos.length > 0) {
+                    console.log(`Found photo at "${place.name}" (Result #${i + 1})`);
+                    const photoReference = place.photos[0].photo_reference;
+                    const photoURL = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoReference}&key=${process.env.GOOGLE_PLACES_API_KEY}`;
+                    return photoURL;
+                }
+            }
+        }
+    } catch (error) {
+        console.error ("Google Places API Error: ", error);    
+    }
+
+    return null;
+}
 
 function tokenizeQuery(rawQuery) {
     if (!rawQuery) return [];
@@ -108,12 +143,12 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
     return R * c;
 }
 
-
 async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTime,
     selectedCategory) {
     const connection = await mysql.createConnection({
         host: 'localhost',
-        user: 'root',
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
         database: 'axolartl'
     });
 
@@ -127,12 +162,11 @@ async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTim
 
         const keywordIds = keywordRows.map(r => r.id);
 
-        // 3️⃣ Total locations (N)
         const [[{ totalLocations }]] = await connection.execute(
             `SELECT COUNT(*) AS totalLocations FROM locations`
         );
 
-        // 4️⃣ Get DF per keyword
+        // Get DF per keyword
         const dfPlaceholders = keywordIds.map(() => '?').join(',');
 
         const [dfRows] = await connection.execute(
@@ -148,7 +182,7 @@ async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTim
             dfMap[r.keyword_id] = r.df;
         });
 
-        // 5️⃣ Build query vector (TF = 1)
+        // Build query vector (TF = 1)
         const queryVector = {};
         let queryNorm = 0;
 
@@ -161,7 +195,7 @@ async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTim
 
         queryNorm = Math.sqrt(queryNorm);
 
-        // 6️⃣ Candidate locations
+        // Candidate locations
         const [candidateRows] = await connection.execute(
             `SELECT DISTINCT location_id
             FROM location_keywords
@@ -214,7 +248,7 @@ async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTim
             categoryMatches = new Set(catRows.map(r => r.location_id));
         }
 
-        // 7️⃣ Get location-keyword pairs
+        // Get location-keyword pairs
         const locPlaceholders = candidateIds.map(() => '?').join(',');
 
         const [locationKeywordRows] = await connection.execute(
@@ -251,7 +285,7 @@ async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTim
             locationVectors[location_id][keyword_id] = idf; // TF=1
         });
 
-        // 8️⃣ Fetch location info
+        // Fetch location info
         const [locationRows] = await connection.execute(
             `SELECT * FROM locations
              WHERE id IN (${locPlaceholders})`,
@@ -263,13 +297,13 @@ async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTim
             locationMap[l.id] = l;
         });
 
-        // 9️⃣ Compute cosine + distance scoring
+        // Compute cosine + distance scoring
         const results = [];
 
         for (const locId of candidateIds) {
             const vector = locationVectors[locId];
             if (DEBUG_VECTORS) {
-                console.log("Location vector:", vector);
+                // console.log("Location vector:", vector);
             }
 
             let dot = 0;
@@ -331,6 +365,35 @@ async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTim
         }
 
         results.sort((a, b) => b.final_score - a.final_score);
+        const topResults = results.slice(0, 10);
+        const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+
+        for (let loc of topResults) {
+            const lastUpdated = loc.image_updated_at ? new Date(loc.image_updated_at).getTime() : 0;
+            const isPlaceholder = loc.image_url && loc.image_url.includes('via.placeholder.com');
+            const needsUpdate = !loc.image_url || isPlaceholder || (now - lastUpdated > THIRTY_DAYS_MS);
+            if (needsUpdate) {
+                    const newImageUrl = await getGooglePlaceImage(loc.latitude, loc.longitude, selectedCategory || "");
+                    
+                    if (newImageUrl) {
+                        loc.image_url = newImageUrl;
+                        connection.execute(
+                            `UPDATE locations SET image_url = ?, image_updated_at = NOW() WHERE id = ?`, 
+                            [loc.image_url, loc.id]
+                        ).catch(err => console.error("DB Update Error:", err));
+                    } else {
+                        connection.execute(
+                            `UPDATE locations SET image_updated_at = NOW() WHERE id = ?`, 
+                            [loc.id]
+                        ).catch(err => console.error("DB Update Error:", err));
+                        
+                        if (!loc.image_url) {
+                            loc.image_url = "https://via.placeholder.com/300x200?text=No+Google+Street+View";
+                        }
+                    }
+                }
+            }
         return results;
     } finally {
         await connection.end();

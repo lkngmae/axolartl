@@ -2,7 +2,8 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useRef, useState, useEffect } from 'react';
-import MapView, { Marker } from 'react-native-maps';
+import { Image } from 'react-native';
+import MapView, { Marker, Callout } from 'react-native-maps';
 import * as Location from 'expo-location';
 
 
@@ -160,7 +161,7 @@ function SearchScreen({ route }) {
     console.log("Radius:", radius);
 
     try {
-      const response = await fetch('http://your-ip-here:3000/search', {
+      const response = await fetch('http://your-local-host:3000/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -177,7 +178,7 @@ function SearchScreen({ route }) {
 
       const data = await response.json();
 
-      console.log("Search Results:", data);
+      // console.log("Search Results:", data);
       setResults(data);
 
       if (data.length > 0) {
@@ -198,6 +199,14 @@ function SearchScreen({ route }) {
 
           if (mapRef.current) {
             if (coordinates.length > 1) {
+              // Ensure that the only locations with photos are include in map zoom.
+              const photoResults = data.filter(r => r.image_url).slice(0, 10);
+              if (photoResults.length > 0) {
+                const coordinates = photoResults.map((result) => ({
+                  latitude: parseFloat(result.latitude),
+                  longitude: parseFloat(result.longitude)
+                })).filter(coord => !Number.isNaN(coord.latitude));
+              }
               mapRef.current.fitToCoordinates(coordinates, {
                 edgePadding: { top: 40, right: 40, bottom: 40, left: 40 },
                 animated: true
@@ -218,6 +227,8 @@ function SearchScreen({ route }) {
       console.error("Search error:", error);
     }
   };
+  // Filter for only results with images, then take the first 10
+  const displayResults = results.filter(r => r.image_url).slice(0, 10)
 
   return (
     <ScrollView
@@ -234,19 +245,16 @@ function SearchScreen({ route }) {
           showsUserLocation
           showsMyLocationButton
         >
-          {results.slice(0, 10).map((result) => {
+          {displayResults.map((result) => {
             const latitude = parseFloat(result.latitude);
             const longitude = parseFloat(result.longitude);
-            if (Number.isNaN(latitude) || Number.isNaN(longitude)) {
-              return null;
-            }
+            if (Number.isNaN(latitude) || Number.isNaN(longitude)) return null;
 
             return (
               <Marker
                 key={result.id}
                 coordinate={{ latitude, longitude }}
-                title={result.name || 'Untitled Location'}
-                description={`${Math.round(result.distance_meters || 0)}m away`}
+                title={result.name} 
               />
             );
           })}
@@ -319,11 +327,33 @@ function SearchScreen({ route }) {
         onPress={handleSearch}
       />
 
-      {results.map((result) => (
-        <Text style={styles.value}>
-          {JSON.stringify(result, null, 2)}
-
-        </Text>)
+      {/* Visual Results List */}
+      {displayResults.length > 0 && (
+        <View style={{ marginTop: 20 }}>
+          <Text style={[styles.title, { textAlign: 'left' }]}>Results Found:</Text>
+          
+          {displayResults.map((result) => (
+            <View key={result.id} style={styles.card}>
+              {result.image_url ? (
+                <Image 
+                  source={{ uri: result.image_url }} 
+                  style={styles.cardImage} 
+                />
+              ) : (
+                <View style={[styles.cardImage, { backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center' }]}>
+                  <Text style={{ color: '#999' }}>No Image Available</Text>
+                </View>
+              )}
+              
+              <View style={styles.cardContent}>
+                <Text style={styles.cardName}>{result.name || 'Unknown Location'}</Text>
+                <Text style={styles.cardDistance}>
+                  {Math.round(result.distance_meters)}m away
+                </Text>
+              </View>
+            </View>
+          ))}
+        </View>
       )}
 
     </ScrollView>
@@ -406,5 +436,34 @@ const styles = StyleSheet.create({
   },
   optionText: {
     fontSize: 16
+  },
+  card: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    marginBottom: 20,
+    overflow: 'hidden',
+    elevation: 3, // Shadow for Android
+    shadowColor: '#000', // Shadow for iOS
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  cardImage: {
+    width: '100%',
+    height: 200, // Nice big image
+    resizeMode: 'cover',
+  },
+  cardContent: {
+    padding: 15,
+  },
+  cardName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  cardDistance: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 5,
   }
 });
