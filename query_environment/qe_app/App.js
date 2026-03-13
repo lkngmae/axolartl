@@ -4,7 +4,11 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React, { useRef, useState, useEffect } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
-
+import { 
+  personalizeResults, 
+  saveSearchToHistory, 
+  toggleFavorite 
+} from './personal_model';
 
 
 
@@ -136,6 +140,7 @@ function SearchScreen({ route }) {
 
 
   const handleSearch = async () => {
+    await saveSearchToHistory(query);
     if (!userLocation && (customLat === '' || customLng === '')) {
       return;
     }
@@ -176,10 +181,12 @@ function SearchScreen({ route }) {
       });
 
       const data = await response.json();
-
+      
       console.log("Search Results:", data);
-      setResults(data);
 
+      const rankedData = await personalizeResults(data);
+      setResults(rankedData);
+  
       if (data.length > 0) {
         const coordinates = data
           .slice(0, 10)
@@ -320,11 +327,24 @@ function SearchScreen({ route }) {
       />
 
       {results.map((result) => (
-        <Text style={styles.value}>
-          {JSON.stringify(result, null, 2)}
+        <View key={result.id || index} style={{ marginBottom: 20, padding: 10, backgroundColor: '#fff', borderRadius: 8 }}>
+          <Text style={styles.value}>
+            {JSON.stringify(result, null, 2)}
+          </Text>
 
-        </Text>)
-      )}
+          <TouchableOpacity 
+            onPress={async () => {
+              await toggleFavorite(result);
+              alert('Saved to Favorites!'); // A quick visual confirmation for testing
+            }}
+            // You can add styles.favoriteButton to your StyleSheet
+            style={{ backgroundColor: '#ffcccc', padding: 10, borderRadius: 8, alignItems: 'center', marginTop: 10 }}
+          >
+            <Text style={{ fontWeight: 'bold' }}>❤️ Favorite</Text>
+          </TouchableOpacity>
+
+        </View>
+      ))}
 
     </ScrollView>
   );
