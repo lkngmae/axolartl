@@ -160,7 +160,7 @@ function SearchScreen({ route }) {
     console.log("Radius:", radius);
 
     try {
-      const response = await fetch('http://your-ip-here:3000/search', {
+      const response = await fetch('http://192.168.0.116:3000/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -241,14 +241,24 @@ function SearchScreen({ route }) {
               return null;
             }
 
-            return (
-              <Marker
-                key={result.id}
-                coordinate={{ latitude, longitude }}
-                title={result.name || 'Untitled Location'}
-                description={`${Math.round(result.distance_meters || 0)}m away`}
-              />
-            );
+            <Marker
+              key={result.id}
+              coordinate={{ latitude, longitude }}
+            >
+              <Callout style={{ width: 200 }}>
+                <View>
+                  {result.image_url && (
+                    <Image 
+                      source={{ uri: result.image_url }} 
+                      style={{ width: 200, height: 120, borderRadius: 8, marginBottom: 5 }} 
+                      resizeMode="cover"
+                    />
+                  )}
+                  <Text style={{ fontWeight: 'bold' }}>{result.name || 'Untitled Location'}</Text>
+                  <Text>{Math.round(result.distance_meters || 0)}m away</Text>
+                </View>
+              </Callout>
+            </Marker>
           })}
         </MapView>
       </View>

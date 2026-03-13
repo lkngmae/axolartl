@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS locations (
     longitude DECIMAL(11, 8),
     coordinates POINT NOT NULL,
     SPATIAL INDEX(coordinates), 
+    image_url VARCHAR(500) DEFAULT NULL,
     image_updated_at TIMESTAMP NULL DEFAULT NULL;
 );
 

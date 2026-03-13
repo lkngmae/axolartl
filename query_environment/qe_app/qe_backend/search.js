@@ -139,7 +139,8 @@ async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTim
     selectedCategory) {
     const connection = await mysql.createConnection({
         host: 'localhost',
-        user: 'root',
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
         database: 'axolartl'
     });
 
@@ -326,7 +327,7 @@ async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTim
         const now = Date.now();
 
         for (let loc of topResults) {
-            const lastUpdated = loc.image_updated_at ? new Date(loc.image_updated_at).getTime();
+            const lastUpdated = loc.image_updated_at ? new Date(loc.image_updated_at).getTime() : 0;
             const needsUpdate = !loc.image_url || (now - lastUpdated > THIRTY_DAYS_MS);
             if (needsUpdate) {
                     const newImageUrl = await getGooglePlaceImage(loc.latitude, loc.longitude, selectedCategory || "");
