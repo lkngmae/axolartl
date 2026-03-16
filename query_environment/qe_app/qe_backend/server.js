@@ -1,12 +1,24 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const searchLocations = require('./search'); // the TF-IDF file
+const mysql = require('mysql2/promise');
+const searchLocations = require('./search');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+// Create the pool once when the server starts. All search requests will
+// borrow connections from this shared pool rather than opening new ones.
+const pool = mysql.createPool({
+    host: 'localhost',
+    user: 'root',
+    database: 'axolartl',
+    waitForConnections: true,  // queue requests when all connections are busy
+    connectionLimit: 10,       // maximum number of open connections
+    queueLimit: 0              // no limit on queued requests (0 = unlimited)
+});
 
 app.post('/search', async (req, res) => {
   const {
@@ -19,6 +31,7 @@ app.post('/search', async (req, res) => {
   } = req.body;
 
   const results = await searchLocations(
+    pool, // used so that the server can recycle connections
     query,
     userLat,
     userLng,
