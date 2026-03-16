@@ -1,0 +1,3 @@
+USE axolartl;
+ALTER TABLE locations ADD COLUMN image_url VARCHAR(500) DEFAULT NULL;
+ALTER TABLE locations ADD COLUMN image_updated_at TIMESTAMP NULL DEFAULT NULL;

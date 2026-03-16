@@ -1,0 +1,4657 @@
+{
+  "1": {
+    "keyword": "abandoned:railway:rail",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "428": {
+    "keyword": "access:lanes:no|yes|yes|yes|yes|yes|yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "388": {
+    "keyword": "access:lanes:yes|yes|yes|yes|no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "391": {
+    "keyword": "access:lanes:yes|yes|yes|yes|yes|yes|no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "115": {
+    "keyword": "access:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "207": {
+    "keyword": "access:permissive",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "174": {
+    "keyword": "access:private",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "179": {
+    "keyword": "access:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "434": {
+    "keyword": "acres:44.5837784235",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "139": {
+    "keyword": "addr:city:corona del mar",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "68": {
+    "keyword": "addr:city:costa mesa",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "103": {
+    "keyword": "addr:city:irvine",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "131": {
+    "keyword": "addr:city:newport beach",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "481": {
+    "keyword": "addr:city:santa ana",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "240": {
+    "keyword": "addr:city:tustin",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "182": {
+    "keyword": "addr:housenumber:1",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "284": {
+    "keyword": "addr:housenumber:100",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "229": {
+    "keyword": "addr:housenumber:1040",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "276": {
+    "keyword": "addr:housenumber:105",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "482": {
+    "keyword": "addr:housenumber:1101",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "283": {
+    "keyword": "addr:housenumber:12",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "294": {
+    "keyword": "addr:housenumber:1250",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "533": {
+    "keyword": "addr:housenumber:1293",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "209": {
+    "keyword": "addr:housenumber:15",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "231": {
+    "keyword": "addr:housenumber:15521",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "413": {
+    "keyword": "addr:housenumber:16492",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "132": {
+    "keyword": "addr:housenumber:1770",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "286": {
+    "keyword": "addr:housenumber:19",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "549": {
+    "keyword": "addr:housenumber:1900",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "478": {
+    "keyword": "addr:housenumber:2065",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "227": {
+    "keyword": "addr:housenumber:2080",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "269": {
+    "keyword": "addr:housenumber:2141",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "360": {
+    "keyword": "addr:housenumber:220",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "435": {
+    "keyword": "addr:housenumber:2301",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "216": {
+    "keyword": "addr:housenumber:25",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "241": {
+    "keyword": "addr:housenumber:255",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "365": {
+    "keyword": "addr:housenumber:2555",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "195": {
+    "keyword": "addr:housenumber:257",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "140": {
+    "keyword": "addr:housenumber:2647",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "564": {
+    "keyword": "addr:housenumber:265",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "234": {
+    "keyword": "addr:housenumber:3",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "272": {
+    "keyword": "addr:housenumber:308",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "69": {
+    "keyword": "addr:housenumber:3143",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "462": {
+    "keyword": "addr:housenumber:3300",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "450": {
+    "keyword": "addr:housenumber:3370",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "296": {
+    "keyword": "addr:housenumber:3400",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "187": {
+    "keyword": "addr:housenumber:360",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "316": {
+    "keyword": "addr:housenumber:4",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "180": {
+    "keyword": "addr:housenumber:40",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "358": {
+    "keyword": "addr:housenumber:425",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "288": {
+    "keyword": "addr:housenumber:45",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "202": {
+    "keyword": "addr:housenumber:55",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "291": {
+    "keyword": "addr:housenumber:570",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "278": {
+    "keyword": "addr:housenumber:6",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "464": {
+    "keyword": "addr:housenumber:60",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "474": {
+    "keyword": "addr:housenumber:60-140",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "457": {
+    "keyword": "addr:housenumber:600",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "104": {
+    "keyword": "addr:housenumber:605",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "280": {
+    "keyword": "addr:housenumber:610",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "571": {
+    "keyword": "addr:housenumber:700",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "274": {
+    "keyword": "addr:housenumber:75",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "184": {
+    "keyword": "addr:housenumber:77",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "223": {
+    "keyword": "addr:housenumber:970",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "362": {
+    "keyword": "addr:postcode:92603",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "203": {
+    "keyword": "addr:postcode:92604",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "281": {
+    "keyword": "addr:postcode:92606",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "105": {
+    "keyword": "addr:postcode:92614",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "232": {
+    "keyword": "addr:postcode:92618",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "235": {
+    "keyword": "addr:postcode:92619",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "141": {
+    "keyword": "addr:postcode:92625",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "44": {
+    "keyword": "addr:postcode:92626",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "188": {
+    "keyword": "addr:postcode:92627",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "366": {
+    "keyword": "addr:postcode:92660",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "133": {
+    "keyword": "addr:postcode:92663",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "483": {
+    "keyword": "addr:postcode:92707",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "498": {
+    "keyword": "addr:postcode:92780",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "242": {
+    "keyword": "addr:postcode:92782",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "70": {
+    "keyword": "addr:state:ca",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "135": {
+    "keyword": "addr:street_direction_prefix:west",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "217": {
+    "keyword": "addr:street:aria",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "224": {
+    "keyword": "addr:street:arlington drive",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "550": {
+    "keyword": "addr:street:back bay drive",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "534": {
+    "keyword": "addr:street:baker street",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "134": {
+    "keyword": "addr:street:balboa boulevard",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "71": {
+    "keyword": "addr:street:bear street",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "181": {
+    "keyword": "addr:street:blue lake south",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "565": {
+    "keyword": "addr:street:brentwood street",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "317": {
+    "keyword": "addr:street:civic center plaza",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "204": {
+    "keyword": "addr:street:deerwood west",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "208": {
+    "keyword": "addr:street:doe trail east",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "236": {
+    "keyword": "addr:street:dovecreek",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "572": {
+    "keyword": "addr:street:dover drive",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "196": {
+    "keyword": "addr:street:east 16th street",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "359": {
+    "keyword": "addr:street:east 18th street",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "361": {
+    "keyword": "addr:street:east 23rd street",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "243": {
+    "keyword": "addr:street:east warner avenue",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "185": {
+    "keyword": "addr:street:fair drive",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "275": {
+    "keyword": "addr:street:fallbrook",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "277": {
+    "keyword": "addr:street:firwood",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "295": {
+    "keyword": "addr:street:gisler street",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "479": {
+    "keyword": "addr:street:knollcrest",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "475": {
+    "keyword": "addr:street:lemon grove",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "451": {
+    "keyword": "addr:street:main street",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "228": {
+    "keyword": "addr:street:manistee drive",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "194": {
+    "keyword": "addr:street:ogle street",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "290": {
+    "keyword": "addr:street:oriole",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "142": {
+    "keyword": "addr:street:pacific coast highway",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "463": {
+    "keyword": "addr:street:park avenue",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "282": {
+    "keyword": "addr:street:paseo westpark",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "230": {
+    "keyword": "addr:street:paularino avenue",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "279": {
+    "keyword": "addr:street:pine brook",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "287": {
+    "keyword": "addr:street:redhawk",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "210": {
+    "keyword": "addr:street:romano",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "414": {
+    "keyword": "addr:street:royal oak",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "106": {
+    "keyword": "addr:street:san marino",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "285": {
+    "keyword": "addr:street:shore bird",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "297": {
+    "keyword": "addr:street:smalley street",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "363": {
+    "keyword": "addr:street:sunnyhill",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "289": {
+    "keyword": "addr:street:timber run",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "270": {
+    "keyword": "addr:street:tustin avenue",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "436": {
+    "keyword": "addr:street:univeristy drive",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "233": {
+    "keyword": "addr:street:valley oak",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "367": {
+    "keyword": "addr:street:vista del oro",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "292": {
+    "keyword": "addr:street:west 18th street",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "484": {
+    "keyword": "addr:street:west stevens avenue",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "273": {
+    "keyword": "addr:street:west yale loop",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "189": {
+    "keyword": "addr:street:wilson street",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "183": {
+    "keyword": "addr:street:windjammer",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "465": {
+    "keyword": "addr:street:windrow road",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "499": {
+    "keyword": "aeroway:jet_bridge",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "528": {
+    "keyword": "amenity:fountain",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "143": {
+    "keyword": "amenity:library",
+    "indoor_score": 1.0,
+    "outdoor_score": 0.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "664": {
+    "keyword": "architect:rudolph michael schindler",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "176": {
+    "keyword": "area:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "653": {
+    "keyword": "artist_name:@morganzion",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "654": {
+    "keyword": "artist_name:@thirds_realm;@5hmi",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "660": {
+    "keyword": "artist_name:aaron glasson",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "658": {
+    "keyword": "artist_name:alex cook",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "650": {
+    "keyword": "artist_name:bret price",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "613": {
+    "keyword": "artist_name:brian peller",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "617": {
+    "keyword": "artist_name:charles o. perry",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "531": {
+    "keyword": "artist_name:isamu noguchi",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "639": {
+    "keyword": "artist_name:ivan mclane",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "620": {
+    "keyword": "artist_name:jim huntington",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "646": {
+    "keyword": "artist_name:kathleen harrison;arlene cartozian",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "631": {
+    "keyword": "artist_name:miriam baker",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "649": {
+    "keyword": "artist_name:miriam baker;rhonda jones",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "662": {
+    "keyword": "artist_name:nobert ortlieb",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "641": {
+    "keyword": "artist_name:peterpaul ott",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "659": {
+    "keyword": "artist_name:shepard fairey",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "661": {
+    "keyword": "artist_name:sonya teymourian",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "530": {
+    "keyword": "artist:wikidata:q442628",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "655": {
+    "keyword": "artwork_type:bust",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "585": {
+    "keyword": "artwork_type:installation",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "627": {
+    "keyword": "artwork_type:mural",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "588": {
+    "keyword": "artwork_type:sculpture",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "587": {
+    "keyword": "artwork_type:statue",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "581": {
+    "keyword": "artwork_type:stone",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "338": {
+    "keyword": "bad_maxspeed:100",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "166": {
+    "keyword": "bad_maxspeed:60",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "334": {
+    "keyword": "bad_maxspeed:78",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "551": {
+    "keyword": "barrier:fence",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "351": {
+    "keyword": "barrier:hedge",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "354": {
+    "keyword": "barrier:kerb",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "349": {
+    "keyword": "barrier:retaining_wall",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "101": {
+    "keyword": "basin:retention",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "303": {
+    "keyword": "bicycle:conditional:dismount @ (mo-fr 08:30-17:00)",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "156": {
+    "keyword": "bicycle:designated",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "558": {
+    "keyword": "bicycle:dismount",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "392": {
+    "keyword": "bicycle:lanes:no|no|no|yes|yes|yes|designated",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "389": {
+    "keyword": "bicycle:lanes:no|yes|yes|yes|designated",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "2": {
+    "keyword": "bicycle:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "371": {
+    "keyword": "bicycle:permissive",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "83": {
+    "keyword": "bicycle:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "125": {
+    "keyword": "boat:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "108": {
+    "keyword": "bridge_ref:55/ora/55-0417",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "117": {
+    "keyword": "bridge_ref:55/ora/55-0736",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "112": {
+    "keyword": "bridge_ref:55/ora/55-409",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "38": {
+    "keyword": "bridge_ref:55/ora/55-5930c",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "170": {
+    "keyword": "bridge_ref:55/ora/55-596",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "421": {
+    "keyword": "bridge_ref:55/ora/55-597",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "259": {
+    "keyword": "bridge_ref:55/ora/55-598",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "34": {
+    "keyword": "bridge_ref:55/ora/55-662",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "37": {
+    "keyword": "bridge:name:bay st oc",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "420": {
+    "keyword": "bridge:name:del mar ave oc",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "111": {
+    "keyword": "bridge:name:dyer rd uc",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "258": {
+    "keyword": "bridge:name:mesa dr oc",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "107": {
+    "keyword": "bridge:name:paularino ave uc",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "33": {
+    "keyword": "bridge:name:santa isabel ave oc",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "116": {
+    "keyword": "bridge:name:utility oc",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "169": {
+    "keyword": "bridge:name:wilson st oc",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "3": {
+    "keyword": "bridge:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "244": {
+    "keyword": "building:hangar",
+    "indoor_score": 1.0,
+    "outdoor_score": 0.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "535": {
+    "keyword": "building:house",
+    "indoor_score": 1.0,
+    "outdoor_score": 0.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "569": {
+    "keyword": "building:yes",
+    "indoor_score": 1.0,
+    "outdoor_score": 0.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "449": {
+    "keyword": "capacity:persons:20",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "492": {
+    "keyword": "change:lanes:yes|yes|not_right|no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "573": {
+    "keyword": "change:lanes:yes|yes|yes|yes|yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "628": {
+    "keyword": "check_date:2025-07-18",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "190": {
+    "keyword": "check_date:2025-07-22",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "460": {
+    "keyword": "check_date:2025-07-23",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "632": {
+    "keyword": "check_date:2025-10-08",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "472": {
+    "keyword": "check_date:2026-01-14",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "665": {
+    "keyword": "check_date:2026-01-19",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "618": {
+    "keyword": "colour:yellow",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "144": {
+    "keyword": "contact:facebook:theshermangardens",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "145": {
+    "keyword": "contact:instagram:theshermangardens",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "146": {
+    "keyword": "contact:twitter:shermangardens",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "471": {
+    "keyword": "covered:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "504": {
+    "keyword": "covered:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "541": {
+    "keyword": "crossing:marked",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "542": {
+    "keyword": "crossing:markings:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "257": {
+    "keyword": "cycleway:both:lane",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "325": {
+    "keyword": "cycleway:both:lane:exclusive",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "332": {
+    "keyword": "cycleway:both:no",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "62": {
+    "keyword": "cycleway:lane",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "466": {
+    "keyword": "cycleway:left:lane",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "264": {
+    "keyword": "cycleway:no",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "63": {
+    "keyword": "cycleway:right:lane",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "327": {
+    "keyword": "cycleway:right:no",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "488": {
+    "keyword": "cycleway:separate",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "54": {
+    "keyword": "cycleway:shared_lane",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "251": {
+    "keyword": "destination:ca 55 north",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "252": {
+    "keyword": "destination:ca 55 south",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "155": {
+    "keyword": "destination:ca 73 north",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "219": {
+    "keyword": "destination:ca 73 south",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "515": {
+    "keyword": "destination:dyer road east",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "501": {
+    "keyword": "destination:laguna beach",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "494": {
+    "keyword": "destination:ref:ca 133 north",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "502": {
+    "keyword": "destination:ref:ca 133 south",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "99": {
+    "keyword": "destination:ref:ca 55 n",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "411": {
+    "keyword": "destination:ref:ca 73",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "342": {
+    "keyword": "destination:ref:i 405",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "556": {
+    "keyword": "destination:ref:i 405 express",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "93": {
+    "keyword": "destination:ref:i 405 n;i 405 north",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "513": {
+    "keyword": "destination:ref:i 405 north;i 405 n",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "514": {
+    "keyword": "destination:ref:i 405 south;ca 55 south",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "94": {
+    "keyword": "destination:san diego freeway",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "467": {
+    "keyword": "destination:street:jamboree road",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "468": {
+    "keyword": "destination:walnut avenue",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "186": {
+    "keyword": "dog:leashed",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "126": {
+    "keyword": "dog:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "519": {
+    "keyword": "dog:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "586": {
+    "keyword": "drinking_water:no",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "582": {
+    "keyword": "ele:11",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "622": {
+    "keyword": "ele:162.53",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "205": {
+    "keyword": "ele:24",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "136": {
+    "keyword": "ele:3",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "147": {
+    "keyword": "ele:31",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "214": {
+    "keyword": "ele:34",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "198": {
+    "keyword": "ele:35",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "212": {
+    "keyword": "ele:39",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "407": {
+    "keyword": "ele:4",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "455": {
+    "keyword": "ele:43",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "456": {
+    "keyword": "ele:5 meters",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "403": {
+    "keyword": "ele:8",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "395": {
+    "keyword": "ele:92",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "386": {
+    "keyword": "electric_bicycle:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "438": {
+    "keyword": "electrified:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "306": {
+    "keyword": "embankment:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "48": {
+    "keyword": "expressway:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "544": {
+    "keyword": "fee:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "337": {
+    "keyword": "fishing:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "221": {
+    "keyword": "fixme:bicycle:verify",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "433": {
+    "keyword": "floating:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "157": {
+    "keyword": "foot:designated",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "27": {
+    "keyword": "foot:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "372": {
+    "keyword": "foot:permissive",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "562": {
+    "keyword": "foot:private",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "164": {
+    "keyword": "foot:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "543": {
+    "keyword": "footway:crossing",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "350": {
+    "keyword": "footway:sidewalk",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "503": {
+    "keyword": "garden:type:community",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "485": {
+    "keyword": "garden:type:landscaping",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "527": {
+    "keyword": "garden:type:public",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "439": {
+    "keyword": "gauge:1435",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "583": {
+    "keyword": "gnis:feature_id:1666040",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "437": {
+    "keyword": "gnis:feature_id:1702614",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "137": {
+    "keyword": "gnis:feature_id:1765350",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "298": {
+    "keyword": "gnis:feature_id:1765523",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "199": {
+    "keyword": "gnis:feature_id:1765560",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "148": {
+    "keyword": "gnis:feature_id:1765613",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "206": {
+    "keyword": "gnis:feature_id:1765644",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "213": {
+    "keyword": "gnis:feature_id:1765653",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "215": {
+    "keyword": "gnis:feature_id:1765686",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "404": {
+    "keyword": "gnis:feature_id:1766004",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "408": {
+    "keyword": "gnis:feature_id:238909",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "396": {
+    "keyword": "gnis:feature_id:239279",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "623": {
+    "keyword": "gnis:feature_id:242498",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "512": {
+    "keyword": "golf_cart:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "511": {
+    "keyword": "golf:cartpath",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "376": {
+    "keyword": "golf:lateral_water_hazard",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "377": {
+    "keyword": "golf:water_hazard",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "382": {
+    "keyword": "handrail:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "245": {
+    "keyword": "height:4.2",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "536": {
+    "keyword": "height:6.21",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "458": {
+    "keyword": "height:6.63",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "246": {
+    "keyword": "heritage:2",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "247": {
+    "keyword": "heritage:operator:nrhp",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "4": {
+    "keyword": "hgv:designated",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "5": {
+    "keyword": "hgv:national_network:terminal_access",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "57": {
+    "keyword": "hgv:national_network:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "500": {
+    "keyword": "hgv:state_network:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "122": {
+    "keyword": "highway:cycleway",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "82": {
+    "keyword": "highway:footway",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "6": {
+    "keyword": "highway:motorway",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "32": {
+    "keyword": "highway:motorway_link",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "167": {
+    "keyword": "highway:path",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "177": {
+    "keyword": "highway:pedestrian",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "15": {
+    "keyword": "highway:primary",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "333": {
+    "keyword": "highway:primary_link",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "84": {
+    "keyword": "highway:residential",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "45": {
+    "keyword": "highway:secondary",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "397": {
+    "keyword": "highway:secondary_link",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "175": {
+    "keyword": "highway:service",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "309": {
+    "keyword": "highway:steps",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "20": {
+    "keyword": "highway:tertiary",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "553": {
+    "keyword": "highway:track",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "343": {
+    "keyword": "highway:unclassified",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "584": {
+    "keyword": "historic:aeroway:aerodrome",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "574": {
+    "keyword": "historic:aircraft",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "577": {
+    "keyword": "historic:battlefield",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "570": {
+    "keyword": "historic:building",
+    "indoor_score": 1.0,
+    "outdoor_score": 0.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "405": {
+    "keyword": "historic:district",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "490": {
+    "keyword": "historic:factory",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "537": {
+    "keyword": "historic:manor",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "567": {
+    "keyword": "historic:memorial",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "579": {
+    "keyword": "historic:monument",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "625": {
+    "keyword": "historic:ruins",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "248": {
+    "keyword": "historic:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "384": {
+    "keyword": "horse:designated",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "28": {
+    "keyword": "horse:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "385": {
+    "keyword": "horse:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "95": {
+    "keyword": "hov:designated",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "96": {
+    "keyword": "hov:lanes:designated",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "92": {
+    "keyword": "hov:lanes:designated|||",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "85": {
+    "keyword": "hov:lanes:designated||||",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "429": {
+    "keyword": "hov:lanes:designated|yes|yes|yes|yes|yes|yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "554": {
+    "keyword": "hov:minimum:3",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "518": {
+    "keyword": "incline:0",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "566": {
+    "keyword": "incline:down",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "310": {
+    "keyword": "incline:up",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "609": {
+    "keyword": "inscription:5:inclusive, persuasive leader.",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "657": {
+    "keyword": "inscription:donated for jean & coalson morris",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "604": {
+    "keyword": "inscription:randon \"randy\" contron",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "480": {
+    "keyword": "intermittent:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "412": {
+    "keyword": "intermittent:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "260": {
+    "keyword": "is_in:state_code:ca",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "340": {
+    "keyword": "junction:noref:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "516": {
+    "keyword": "junction:ref:8a",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "469": {
+    "keyword": "junction:spui",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "473": {
+    "keyword": "landuse:grass",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "491": {
+    "keyword": "landuse:residential",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "47": {
+    "keyword": "lanes:1",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "21": {
+    "keyword": "lanes:2",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "49": {
+    "keyword": "lanes:3",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "7": {
+    "keyword": "lanes:4",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "86": {
+    "keyword": "lanes:5",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "328": {
+    "keyword": "lanes:6",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "393": {
+    "keyword": "lanes:7",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "39": {
+    "keyword": "lanes:backward:2",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "346": {
+    "keyword": "lanes:backward:3",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "40": {
+    "keyword": "lanes:forward:2",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "561": {
+    "keyword": "lanes:forward:3",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "355": {
+    "keyword": "lanes:forward:4",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "557": {
+    "keyword": "layer:-1",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "8": {
+    "keyword": "layer:1",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "79": {
+    "keyword": "layer:2",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "326": {
+    "keyword": "layer:3",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "369": {
+    "keyword": "leisure:dog_park",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "149": {
+    "keyword": "leisure:garden",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "72": {
+    "keyword": "leisure:park",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "402": {
+    "keyword": "level:1",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "368": {
+    "keyword": "level:2",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "540": {
+    "keyword": "level:2ref=15",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "401": {
+    "keyword": "level:3",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "521": {
+    "keyword": "lifeguard:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "218": {
+    "keyword": "lit:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "226": {
+    "keyword": "lit:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "16": {
+    "keyword": "loc_name:pch",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "409": {
+    "keyword": "loc_name:the peninsula",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "118": {
+    "keyword": "location:overground",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "575": {
+    "keyword": "man_made:aircraft",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "486": {
+    "keyword": "man_made:bridge",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "370": {
+    "keyword": "man_made:pier",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "119": {
+    "keyword": "man_made:pipeline",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "643": {
+    "keyword": "man_made:street_cabinet",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "614": {
+    "keyword": "material:bronze",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "616": {
+    "keyword": "material:concrete",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "619": {
+    "keyword": "material:metal",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "621": {
+    "keyword": "material:rock",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "640": {
+    "keyword": "material:stainless_steel",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "644": {
+    "keyword": "material:steel",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "606": {
+    "keyword": "material:stone",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "589": {
+    "keyword": "material:wood",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "344": {
+    "keyword": "maxheight:14'",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "507": {
+    "keyword": "maxheight:14'0\"",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "308": {
+    "keyword": "maxspeed:10 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "158": {
+    "keyword": "maxspeed:20 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "22": {
+    "keyword": "maxspeed:25 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "505": {
+    "keyword": "maxspeed:30 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "17": {
+    "keyword": "maxspeed:40 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "265": {
+    "keyword": "maxspeed:45 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "29": {
+    "keyword": "maxspeed:50 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "380": {
+    "keyword": "maxspeed:55 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "50": {
+    "keyword": "maxspeed:60 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "9": {
+    "keyword": "maxspeed:65 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "304": {
+    "keyword": "maxspeed:8 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "440": {
+    "keyword": "maxspeed:90 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "495": {
+    "keyword": "maxspeed:advisory:25 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "60": {
+    "keyword": "maxspeed:advisory:45 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "97": {
+    "keyword": "maxspeed:advisory:65 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "441": {
+    "keyword": "maxspeed:freight:55 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "10": {
+    "keyword": "maxspeed:hgv:55 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "11": {
+    "keyword": "maxspeed:towing:55 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "430": {
+    "keyword": "maxspeed:trailer:55 mph",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "23": {
+    "keyword": "maxweight:signed:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "591": {
+    "keyword": "memorial:ghost_bike",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "590": {
+    "keyword": "memorial:peace_pole",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "580": {
+    "keyword": "memorial:plaque",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "648": {
+    "keyword": "memorial:sculpture",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "35": {
+    "keyword": "milepost:county:3.27",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "422": {
+    "keyword": "milepost:county:3.78",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "261": {
+    "keyword": "milepost:county:4.02",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "109": {
+    "keyword": "milepost:county:5.54",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "41": {
+    "keyword": "milepost:county:r2.4",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "120": {
+    "keyword": "milepost:county:r2.52",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "171": {
+    "keyword": "milepost:county:r3.20",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "113": {
+    "keyword": "milepost:county:r7.96",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "576": {
+    "keyword": "model:wikidata:q83403022",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "432": {
+    "keyword": "mooring:private",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "307": {
+    "keyword": "motor_vehicle:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "406": {
+    "keyword": "motor_vehicle:private",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "470": {
+    "keyword": "motor_vehicle:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "154": {
+    "keyword": "name_1:new ford road",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "318": {
+    "keyword": "name:etymology:colonel william e. barber",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "293": {
+    "keyword": "name:etymology:costa mesa lions club",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "299": {
+    "keyword": "name:etymology:daniel aldrich",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "545": {
+    "keyword": "name:etymology:laurel l. wilkening",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "172": {
+    "keyword": "name:etymology:wikidata:q1645480; q34296",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "300": {
+    "keyword": "name:etymology:wikidata:q5217213",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "423": {
+    "keyword": "name:etymology:wikidata:q7099561",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "546": {
+    "keyword": "name:etymology:wikidata:q79462785",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "319": {
+    "keyword": "name:etymology:wikidata:q8008191",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "301": {
+    "keyword": "name:etymology:wikipedia:en:daniel aldrich",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "547": {
+    "keyword": "name:etymology:wikipedia:en:laurel l. wilkening",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "320": {
+    "keyword": "name:etymology:wikipedia:en:william e. barber",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "608": {
+    "keyword": "name:etymology:william g. kerckhoff",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "312": {
+    "keyword": "natural:beach",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "624": {
+    "keyword": "natural:peak",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "100": {
+    "keyword": "natural:water",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "75": {
+    "keyword": "natural:wetland",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "12": {
+    "keyword": "nhs:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "239": {
+    "keyword": "noname:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "165": {
+    "keyword": "noref:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "364": {
+    "keyword": "not:operator:wikidata:q49219",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "313": {
+    "keyword": "official_name:william r. mason regional park",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "51": {
+    "keyword": "old_ref:legislative:184",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "55": {
+    "keyword": "old_ref:legislative:185",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "56": {
+    "keyword": "old_ref:sr 133",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "52": {
+    "keyword": "old_ref:sr 73",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "305": {
+    "keyword": "oneway:bicycle:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "53": {
+    "keyword": "oneway:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "13": {
+    "keyword": "oneway:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "387": {
+    "keyword": "opening_hours:07:00-sunset",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "127": {
+    "keyword": "opening_hours:08:00-sunset",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "532": {
+    "keyword": "opening_hours:24/7",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "150": {
+    "keyword": "opening_hours:mo-su 10:30-16:00",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "238": {
+    "keyword": "opening_hours:sunrise-sunset",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "151": {
+    "keyword": "opening_hours:url:https://thesherman.org/visit/",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "73": {
+    "keyword": "operator:type:government",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "496": {
+    "keyword": "operator:type:private",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "237": {
+    "keyword": "operator:type:public",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "302": {
+    "keyword": "operator:type:university",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "314": {
+    "keyword": "operator:wikidata:q104882836",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "357": {
+    "keyword": "operator:wikidata:q268873",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "74": {
+    "keyword": "operator:wikidata:q499196",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "128": {
+    "keyword": "owner:lido isle community association",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "442": {
+    "keyword": "owner:orange county transportation authority",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "201": {
+    "keyword": "park:type:community",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "211": {
+    "keyword": "park:type:neighborhood",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "443": {
+    "keyword": "passenger_lines:2",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "129": {
+    "keyword": "picnic:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "76": {
+    "keyword": "place:islet",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "88": {
+    "keyword": "placement:middle_of:1",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "431": {
+    "keyword": "placement:middle_of:3",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "162": {
+    "keyword": "placement:middle_of:4",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "58": {
+    "keyword": "placement:right_of:1",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "329": {
+    "keyword": "placement:right_of:2",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "390": {
+    "keyword": "placement:right_of:3",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "394": {
+    "keyword": "placement:right_of:4",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "253": {
+    "keyword": "placement:transition",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "98": {
+    "keyword": "psv:designated",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "444": {
+    "keyword": "railway:ptc:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "445": {
+    "keyword": "railway:rail",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "14": {
+    "keyword": "railway:razed",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "446": {
+    "keyword": "railway:track_class:5",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "447": {
+    "keyword": "railway:track_ref:2",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "311": {
+    "keyword": "ramp:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "249": {
+    "keyword": "ref:nrhp:75000451",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "626": {
+    "keyword": "ruins:building",
+    "indoor_score": 1.0,
+    "outdoor_score": 0.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "522": {
+    "keyword": "sac_scale:hiking",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "497": {
+    "keyword": "salt:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "160": {
+    "keyword": "segregated:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "255": {
+    "keyword": "service:driveway",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "453": {
+    "keyword": "service:parking_aisle",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "254": {
+    "keyword": "sidewalk:both:separate",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "30": {
+    "keyword": "sidewalk:left:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "256": {
+    "keyword": "sidewalk:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "31": {
+    "keyword": "sidewalk:right:separate",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "64": {
+    "keyword": "sidewalk:separate",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "191": {
+    "keyword": "smoking:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "161": {
+    "keyword": "smoothness:good",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "25": {
+    "keyword": "source_ref:am909_dscu2149",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "152": {
+    "keyword": "source_ref:am909_dscu2170",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "517": {
+    "keyword": "source_ref:am909_dscu4128",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "90": {
+    "keyword": "source_ref:am909_dscu4139",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "81": {
+    "keyword": "source_ref:am909_dscu4201",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "124": {
+    "keyword": "source_ref:am909_dscu4237",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "130": {
+    "keyword": "source_ref:am909_dscu4251",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "123": {
+    "keyword": "source_ref:am909_dscu4336",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "138": {
+    "keyword": "source_ref:am909_dscu4589;am909_dscu4590",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "398": {
+    "keyword": "source_ref:am909_dscu4858",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "323": {
+    "keyword": "source_ref:am909_dscv0861",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "427": {
+    "keyword": "source_ref:am909_dscv0862",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "114": {
+    "keyword": "source_ref:bridge:am909_dscu4127",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "110": {
+    "keyword": "source_ref:bridge:am909_dscu4140",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "262": {
+    "keyword": "source_ref:bridge:am909_dscu4144",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "424": {
+    "keyword": "source_ref:bridge:am909_dscu4145",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "36": {
+    "keyword": "source_ref:bridge:am909_dscu4146",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "173": {
+    "keyword": "source_ref:bridge:am909_dscu4148",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "121": {
+    "keyword": "source_ref:bridge:am909_dscu4151",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "42": {
+    "keyword": "source_ref:bridge:am909_dscu4152",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "18": {
+    "keyword": "source_ref:maxspeed:am909_dscu2104",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "324": {
+    "keyword": "source_ref:maxspeed:am909_dscv0860;am909_dscv0866",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "353": {
+    "keyword": "source_ref:vvvexp97",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "67": {
+    "keyword": "source:bing",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "347": {
+    "keyword": "source:bing_imagery",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "197": {
+    "keyword": "source:bing_imagery;local knowledge",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "538": {
+    "keyword": "source:esri/orange_county_ca_buildings_v3",
+    "indoor_score": 1.0,
+    "outdoor_score": 0.0,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "200": {
+    "keyword": "source:local knowledge;bing_imagery",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "352": {
+    "keyword": "source:survey;bing_imagery",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "89": {
+    "keyword": "source:survey;image;usgs_imagery;cdot",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "80": {
+    "keyword": "source:survey;image;yahoo_imagery",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "379": {
+    "keyword": "source:tiger2011; bing",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "378": {
+    "keyword": "source:tiger2011;bing",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "322": {
+    "keyword": "source:usgs_imagery;survey;image",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "61": {
+    "keyword": "source:yahoo_imagery;cdot",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "24": {
+    "keyword": "source:yahoo_imagery;survey;image",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "46": {
+    "keyword": "source:yahoo,tiger;local knowledge;gps",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "666": {
+    "keyword": "start_date:1926",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "539": {
+    "keyword": "start_date:1928",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "642": {
+    "keyword": "start_date:1957-04-02",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "225": {
+    "keyword": "start_date:1965-01-31",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "652": {
+    "keyword": "start_date:1971",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "615": {
+    "keyword": "start_date:1975-05-17",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "192": {
+    "keyword": "start_date:1977",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "271": {
+    "keyword": "start_date:1981-09-08",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "663": {
+    "keyword": "start_date:1982",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "607": {
+    "keyword": "start_date:2000-06-03",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "645": {
+    "keyword": "start_date:2004",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "647": {
+    "keyword": "start_date:2005",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "611": {
+    "keyword": "start_date:2005-04-22",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "610": {
+    "keyword": "start_date:2005-10-27",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "568": {
+    "keyword": "start_date:2008",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "651": {
+    "keyword": "start_date:2014-10",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "629": {
+    "keyword": "start_date:2020",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "605": {
+    "keyword": "start_date:2022-09-19",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "636": {
+    "keyword": "subject:dolly parton",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "630": {
+    "keyword": "subject:kobe bryant",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "598": {
+    "keyword": "subject:laozi",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "612": {
+    "keyword": "subject:laurel l. wilkening",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "592": {
+    "keyword": "subject:li bai",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "595": {
+    "keyword": "subject:magu",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "601": {
+    "keyword": "subject:qu yuan",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "633": {
+    "keyword": "subject:ronal reagan",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "596": {
+    "keyword": "subject:wikidata:q2619890",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "602": {
+    "keyword": "subject:wikidata:q313330",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "593": {
+    "keyword": "subject:wikidata:q7071",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "599": {
+    "keyword": "subject:wikidata:q9333",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "637": {
+    "keyword": "subject:wikidata:q9394",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "634": {
+    "keyword": "subject:wikidata:q9960",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "600": {
+    "keyword": "subject:wikipedia:en:laozi",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "594": {
+    "keyword": "subject:wikipedia:en:li bai",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "597": {
+    "keyword": "subject:wikipedia:en:magu (deity)",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "603": {
+    "keyword": "subject:wikipedia:en:qu yuan",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "638": {
+    "keyword": "subject:wikipedia:en:rabbit",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "635": {
+    "keyword": "subject:wikipedia:en:ronald reagan",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "26": {
+    "keyword": "surface:asphalt",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "19": {
+    "keyword": "surface:concrete",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "375": {
+    "keyword": "surface:concrete:lanes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "559": {
+    "keyword": "surface:concrete:plates",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "452": {
+    "keyword": "surface:grass",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "523": {
+    "keyword": "surface:metal",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "159": {
+    "keyword": "surface:paved",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "178": {
+    "keyword": "surface:paving_stones",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "563": {
+    "keyword": "surface:plastic",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "410": {
+    "keyword": "surface:sand",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "168": {
+    "keyword": "surface:unpaved",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "373": {
+    "keyword": "surface:wood",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "548": {
+    "keyword": "swimming:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "77": {
+    "keyword": "tidal:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "555": {
+    "keyword": "toll:hov:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "59": {
+    "keyword": "toll:no",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "65": {
+    "keyword": "toll:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "578": {
+    "keyword": "tourism:artwork",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "461": {
+    "keyword": "tourism:picnic_site",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "487": {
+    "keyword": "tourism:viewpoint",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "524": {
+    "keyword": "trail_visibility:excellent",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "87": {
+    "keyword": "turn:lanes:||||merge_to_left",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "339": {
+    "keyword": "turn:lanes:||||right",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "330": {
+    "keyword": "turn:lanes:||||right|right",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "91": {
+    "keyword": "turn:lanes:|||merge_to_left",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "526": {
+    "keyword": "turn:lanes:|||right",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "222": {
+    "keyword": "turn:lanes:|||through;slight_right",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "477": {
+    "keyword": "turn:lanes:||through;right",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "220": {
+    "keyword": "turn:lanes:|merge_to_left",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "560": {
+    "keyword": "turn:lanes:|right",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "419": {
+    "keyword": "turn:lanes:backward:||merge_to_left",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "335": {
+    "keyword": "turn:lanes:backward:left||",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "399": {
+    "keyword": "turn:lanes:backward:left|left|",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "267": {
+    "keyword": "turn:lanes:backward:left|left||",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "266": {
+    "keyword": "turn:lanes:backward:left|left|||",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "43": {
+    "keyword": "turn:lanes:backward:left|through",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "336": {
+    "keyword": "turn:lanes:forward:|merge_to_left",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "417": {
+    "keyword": "turn:lanes:forward:|right",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "263": {
+    "keyword": "turn:lanes:forward:left|",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "268": {
+    "keyword": "turn:lanes:forward:left||",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "426": {
+    "keyword": "turn:lanes:forward:left|left|",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "425": {
+    "keyword": "turn:lanes:forward:left|left||",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "356": {
+    "keyword": "turn:lanes:forward:left|left|through|through",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "415": {
+    "keyword": "turn:lanes:forward:left|through",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "476": {
+    "keyword": "turn:lanes:left",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "331": {
+    "keyword": "turn:lanes:left||",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "418": {
+    "keyword": "turn:lanes:left|||right",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "509": {
+    "keyword": "turn:lanes:left|left;slight_right|slight_right",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "416": {
+    "keyword": "turn:lanes:left|left||",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "163": {
+    "keyword": "turn:lanes:left|left|||",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "381": {
+    "keyword": "turn:lanes:left|left|||through;right|right",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "489": {
+    "keyword": "turn:lanes:left|left|through|through",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "508": {
+    "keyword": "turn:lanes:left|none|none",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "493": {
+    "keyword": "turn:lanes:merge_to_right",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "321": {
+    "keyword": "turn:lanes:none|merge_to_left",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "345": {
+    "keyword": "turn:lanes:none|none|merge_to_left",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "66": {
+    "keyword": "turn:lanes:none|none|none|merge_to_left",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "454": {
+    "keyword": "turn:lanes:right",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "506": {
+    "keyword": "turn:lanes:through|through",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "193": {
+    "keyword": "type:multipolygon",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "448": {
+    "keyword": "usage:main",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "102": {
+    "keyword": "water:basin",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "529": {
+    "keyword": "water:fountain",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "315": {
+    "keyword": "water:lake",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "250": {
+    "keyword": "water:pond",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "341": {
+    "keyword": "water:reservoir",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "348": {
+    "keyword": "water:river",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "510": {
+    "keyword": "water:stream",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "153": {
+    "keyword": "website:calendar:https://thesherman.org/calendar/",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "520": {
+    "keyword": "wetland:marsh",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "78": {
+    "keyword": "wetland:saltmarsh",
+    "indoor_score": 0.0,
+    "outdoor_score": 1.0,
+    "rain_ok": false,
+    "heat_ok": false
+  },
+  "383": {
+    "keyword": "wheelchair:yes",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "525": {
+    "keyword": "width:1",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "459": {
+    "keyword": "width:2",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "552": {
+    "keyword": "width:2.3",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "400": {
+    "keyword": "width:3",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  },
+  "374": {
+    "keyword": "width:3.3",
+    "indoor_score": 0.5,
+    "outdoor_score": 0.5,
+    "rain_ok": true,
+    "heat_ok": true
+  }
+}

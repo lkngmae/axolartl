@@ -1,3 +1,8 @@
+require('dotenv').config();
+const mysql = require('mysql2/promise');
+const { getCurrentWeather, classifyWeather } = require('./weather');
+const { computeLocationWeatherScore } = require('./weatherScoring');
+
 // Words to exclude from query expansion and scoring. These carry no
 // meaningful semantic signal and would inflate match counts if included.
 const STOPWORDS = new Set([
@@ -16,6 +21,41 @@ const SYNONYM_MAP = {
     bridge: ['bridge', 'man_made:bridge'],
     beach: ['natural:beach']
 };
+
+
+async function getGooglePlaceImage(lat, lon, keyword = "") {
+    const searchUrl = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json");
+    searchUrl.search = new URLSearchParams({
+        location: `${lat},${lon}`,
+        radius: 1000,
+        keyword: keyword, // TODO: adding multiple keywords in a list?
+        key: process.env.GOOGLE_PLACES_API_KEY
+    });
+
+    try{
+        console.log('Sending Google Places request...')
+        const response = await fetch(searchUrl);
+        const data = await response.json();
+        console.log(`Google Places Responded with status:${data.status}`)
+        // If a location is found and the location has photos.
+        if (data.results && data.results.length > 0) {
+            console.log(`Found ${data.results.length} places nearby. Scanning for photos...`);
+            for (let i = 0; i < data.results.length; i++) {
+                const place = data.results[i];
+                if(place.photos && place.photos.length > 0) {
+                    console.log(`Found photo at "${place.name}" (Result #${i + 1})`);
+                    const photoReference = place.photos[0].photo_reference;
+                    const photoURL = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoReference}&key=${process.env.GOOGLE_PLACES_API_KEY}`;
+                    return photoURL;
+                }
+            }
+        }
+    } catch (error) {
+        console.error ("Google Places API Error: ", error);    
+    }
+
+    return null;
+}
 
 /**
  * Splits a raw query string into an array of normalised tokens.
@@ -209,6 +249,15 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
     // Borrow a connection from the pool. It is returned via release() in the
     // finally block regardless of whether the search succeeds or throws.
     const connection = await pool.getConnection();
+  // TODO: fix here
+// async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTime,
+//     selectedCategory) {
+    const connection = await mysql.createConnection({
+        host: 'localhost',
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD,
+        database: 'axolartl'
+    });
 
     try {
         // Step 1: Convert the raw query string into normalised keyword tokens.
@@ -223,13 +272,11 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
 
         const keywordIds = keywordRows.map(r => r.id);
 
-        // Step 3: Fetch the total number of locations (N) for IDF calculation.
         const [[{ totalLocations }]] = await connection.execute(
             `SELECT COUNT(*) AS totalLocations FROM locations`
         );
 
-        // Step 4: Fetch the document frequency (df) for each matched keyword,
-        // i.e. the number of locations that have been tagged with that keyword.
+        // Get DF per keyword
         const dfPlaceholders = keywordIds.map(() => '?').join(',');
 
         const [dfRows] = await connection.execute(
@@ -246,8 +293,7 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             dfMap[r.keyword_id] = r.df;
         });
 
-        // Step 5: Build the query's TF-IDF vector. TF is assumed to be 1 for
-        // every matched keyword (presence/absence model). IDF = log(N / df).
+        // Build query vector (TF = 1)
         const queryVector = {};
         let queryNorm = 0;
 
@@ -260,8 +306,7 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
 
         queryNorm = Math.sqrt(queryNorm);
 
-        // Step 6: Retrieve the distinct set of candidate location IDs that
-        // are tagged with at least one of the query keywords.
+        // Candidate locations
         const [candidateRows] = await connection.execute(
             `SELECT DISTINCT location_id
             FROM location_keywords
@@ -286,8 +331,19 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
         const candidateIds = candidateRows.map(r => r.location_id);
         if (candidateIds.length === 0) return [];
 
-        // Build a set of candidate location IDs that belong to the selected
-        // category so they can receive a category score bonus during ranking.
+        let currentWeather = null;
+        let weatherClass = 'great_outdoor';
+
+        try {
+            currentWeather = await getCurrentWeather(userLat, userLng);
+            console.log(currentWeather);
+            weatherClass = classifyWeather(currentWeather);
+            console.log(weatherClass);
+        } catch (error) {
+            // Fallback keeps ranking functional if weather API fails.
+            console.warn(error.message);
+        }
+
         let categoryMatches = new Set();
 
         if (categoryId) {
@@ -304,8 +360,7 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             categoryMatches = new Set(catRows.map(r => r.location_id));
         }
 
-        // Step 7: Fetch the keyword associations for every candidate location
-        // so we can build per-location TF-IDF vectors for cosine scoring.
+        // Get location-keyword pairs
         const locPlaceholders = candidateIds.map(() => '?').join(',');
 
         const [locationKeywordRows] = await connection.execute(
@@ -316,7 +371,22 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             [...candidateIds, ...keywordIds]
         );
 
-        // Initialise an empty vector for each candidate location.
+        const [allLocationKeywordRows] = await connection.execute(
+            `SELECT location_id, keyword_id
+             FROM location_keywords
+             WHERE location_id IN (${locPlaceholders})`,
+            candidateIds
+        );
+
+        const locationKeywordIds = {};
+        candidateIds.forEach(id => {
+            locationKeywordIds[id] = [];
+        });
+        allLocationKeywordRows.forEach(row => {
+            locationKeywordIds[row.location_id].push(row.keyword_id);
+        });
+
+        // Build location vectors
         const locationVectors = {};
         candidateIds.forEach(id => locationVectors[id] = {});
 
@@ -328,8 +398,7 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             locationVectors[location_id][keyword_id] = idf;
         });
 
-        // Fetch the full location records (coordinates, name, etc.) for all
-        // candidates so we can compute distances and build the result objects.
+        // Fetch location info
         const [locationRows] = await connection.execute(
             `SELECT * FROM locations
              WHERE id IN (${locPlaceholders})`,
@@ -342,13 +411,13 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             locationMap[l.id] = l;
         });
 
-        // Step 8: Score each candidate and collect results.
+        // Compute cosine + distance scoring
         const results = [];
 
         for (const locId of candidateIds) {
             const vector = locationVectors[locId];
             if (DEBUG_VECTORS) {
-                console.log("Location vector:", vector);
+                // console.log("Location vector:", vector);
             }
 
             // Compute dot product between the query vector and location vector.
@@ -396,17 +465,25 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             // Binary bonus: 1 if the location belongs to the selected category,
             // 0 otherwise.
             const categoryScore = categoryMatches.has(locId) ? 1 : 0;
+            const weatherScore = computeLocationWeatherScore(
+                locationKeywordIds[locId],
+                weatherClass
+            );
 
             // Weighted final score combining all three signals.
             const finalScore =
-                0.55 * cosine +
-                0.30 * distanceScore +
-                0.15 * categoryScore;
+                0.5 * cosine +
+                0.1 * categoryScore +
+                0.25 * distanceScore +
+                0.15 * weatherScore;
 
             results.push({
                 ...location,
                 cosine_score: cosine,
                 category_score: categoryScore,
+                weather_score: weatherScore,
+                weather_class: weatherClass,
+                weather: currentWeather,
                 distance_meters: distance,
                 final_score: finalScore
             });
@@ -414,6 +491,35 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
 
         // Return results ranked from most to least relevant.
         results.sort((a, b) => b.final_score - a.final_score);
+        const topResults = results.slice(0, 10);
+        const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+
+        for (let loc of topResults) {
+            const lastUpdated = loc.image_updated_at ? new Date(loc.image_updated_at).getTime() : 0;
+            const isPlaceholder = loc.image_url && loc.image_url.includes('via.placeholder.com');
+            const needsUpdate = !loc.image_url || isPlaceholder || (now - lastUpdated > THIRTY_DAYS_MS);
+            if (needsUpdate) {
+                    const newImageUrl = await getGooglePlaceImage(loc.latitude, loc.longitude, selectedCategory || "");
+                    
+                    if (newImageUrl) {
+                        loc.image_url = newImageUrl;
+                        connection.execute(
+                            `UPDATE locations SET image_url = ?, image_updated_at = NOW() WHERE id = ?`, 
+                            [loc.image_url, loc.id]
+                        ).catch(err => console.error("DB Update Error:", err));
+                    } else {
+                        connection.execute(
+                            `UPDATE locations SET image_updated_at = NOW() WHERE id = ?`, 
+                            [loc.id]
+                        ).catch(err => console.error("DB Update Error:", err));
+                        
+                        if (!loc.image_url) {
+                            loc.image_url = "https://via.placeholder.com/300x200?text=No+Google+Street+View";
+                        }
+                    }
+                }
+            }
         return results;
     } finally {
         // Release the connection back to the pool rather than closing it,
