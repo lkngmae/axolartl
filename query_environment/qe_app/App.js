@@ -5,7 +5,11 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Image } from 'react-native';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import * as Location from 'expo-location';
-
+import { 
+  personalizeResults, 
+  saveSearchToHistory, 
+  toggleFavorite 
+} from './personal_model';
 
 
 
@@ -137,6 +141,7 @@ function SearchScreen({ route }) {
 
 
   const handleSearch = async () => {
+    await saveSearchToHistory(query);
     if (!userLocation && (customLat === '' || customLng === '')) {
       return;
     }
@@ -177,10 +182,12 @@ function SearchScreen({ route }) {
       });
 
       const data = await response.json();
+      
+      console.log("Search Results:", data);
 
-      // console.log("Search Results:", data);
-      setResults(data);
-
+      const rankedData = await personalizeResults(data);
+      setResults(rankedData);
+  
       if (data.length > 0) {
         const coordinates = data
           .slice(0, 10)
@@ -327,34 +334,25 @@ function SearchScreen({ route }) {
         onPress={handleSearch}
       />
 
-      {/* Visual Results List */}
-      {displayResults.length > 0 && (
-        <View style={{ marginTop: 20 }}>
-          <Text style={[styles.title, { textAlign: 'left' }]}>Results Found:</Text>
-          
-          {displayResults.map((result) => (
-            <View key={result.id} style={styles.card}>
-              {result.image_url ? (
-                <Image 
-                  source={{ uri: result.image_url }} 
-                  style={styles.cardImage} 
-                />
-              ) : (
-                <View style={[styles.cardImage, { backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center' }]}>
-                  <Text style={{ color: '#999' }}>No Image Available</Text>
-                </View>
-              )}
-              
-              <View style={styles.cardContent}>
-                <Text style={styles.cardName}>{result.name || 'Unknown Location'}</Text>
-                <Text style={styles.cardDistance}>
-                  {Math.round(result.distance_meters)}m away
-                </Text>
-              </View>
-            </View>
-          ))}
+      {results.map((result) => (
+        <View key={result.id || index} style={{ marginBottom: 20, padding: 10, backgroundColor: '#fff', borderRadius: 8 }}>
+          <Text style={styles.value}>
+            {JSON.stringify(result, null, 2)}
+          </Text>
+
+          <TouchableOpacity 
+            onPress={async () => {
+              await toggleFavorite(result);
+              alert('Saved to Favorites!'); // A quick visual confirmation for testing
+            }}
+            // You can add styles.favoriteButton to your StyleSheet
+            style={{ backgroundColor: '#ffcccc', padding: 10, borderRadius: 8, alignItems: 'center', marginTop: 10 }}
+          >
+            <Text style={{ fontWeight: 'bold' }}>❤️ Favorite</Text>
+          </TouchableOpacity>
+
         </View>
-      )}
+      ))}
 
     </ScrollView>
   );
