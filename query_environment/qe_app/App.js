@@ -68,6 +68,9 @@ function SearchScreen({ route }) {
   const [customTime, setCustomTime] = useState('');
 
   const [results, setResults] = useState([]);
+  const [currentWeather, setCurrentWeather] = useState(null);
+  const [weatherClass, setWeatherClass] = useState('great_outdoor');
+  const [scoreWeights, setScoreWeights] = useState(null);
   const [mapRegion, setMapRegion] = useState({
     latitude: 33.6437,
     longitude: -117.8391,
@@ -166,7 +169,7 @@ function SearchScreen({ route }) {
     console.log("Radius:", radius);
 
     try {
-      const response = await fetch('http://uriphere:3000/search', {
+      const response = await fetch('http://ip:3000/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -181,12 +184,53 @@ function SearchScreen({ route }) {
         })
       });
 
-      const data = await response.json();
+      const payload = await response.json();
+      const data = Array.isArray(payload) ? payload : (payload.results || []);
+      const weather = Array.isArray(payload) ? (data?.[0]?.weather ?? null) : (payload.weather ?? null);
+      const wClass = Array.isArray(payload) ? (data?.[0]?.weather_class ?? 'great_outdoor') : (payload.weather_class ?? 'great_outdoor');
+      const weights = Array.isArray(payload) ? null : (payload.score_weights ?? null);
       
       console.log("Search Results:", data);
+      setCurrentWeather(weather);
+      setWeatherClass(wClass);
+      setScoreWeights(weights);
 
       const rankedData = await personalizeResults(data);
       setResults(rankedData);
+
+      // App-side score logging (top 10)
+      try {
+        const w = weights || { cosine: 0.6, distance: 0.25, category: 0.15 };
+        console.log("=== SCORE WEIGHTS (backend) ===", {
+          cosine_pct: Math.round((w.cosine ?? 0) * 100),
+          distance_pct: Math.round((w.distance ?? 0) * 100),
+          category_pct: Math.round((w.category ?? 0) * 100),
+        });
+
+        rankedData.slice(0, 10).forEach((r, idx) => {
+          const distanceScore = typeof r.distance_meters === 'number'
+            ? 1 - (r.distance_meters / Math.max(1, parseFloat(radius)))
+            : null;
+          console.log(`[#${idx + 1}] ${r.name}`, {
+            overall_score: r.final_score,
+            cosine_score: r.cosine_score,
+            distance_meters: r.distance_meters,
+            distance_score: distanceScore,
+            category_score: r.category_score,
+            personal_score: r.personalScore,
+            personal_breakdown: r.personal_breakdown,
+            personal_weights: r.personal_weights,
+            weights_pct: {
+              cosine: Math.round((w.cosine ?? 0) * 100),
+              distance: Math.round((w.distance ?? 0) * 100),
+              category: Math.round((w.category ?? 0) * 100),
+              personalization_note: "personalScore is used for client-side re-ranking (not blended into final_score)."
+            }
+          });
+        });
+      } catch (e) {
+        console.warn("Score logging failed:", e?.message || e);
+      }
   
       if (data.length > 0) {
         const coordinates = data
@@ -242,7 +286,19 @@ function SearchScreen({ route }) {
       style={styles.searchScreen}
       contentContainerStyle={styles.searchContainer}
       keyboardShouldPersistTaps="handled"
+      stickyHeaderIndices={[0]}
     >
+      <View style={styles.weatherBanner}>
+        <Text style={styles.weatherTitle}>Current weather</Text>
+        {currentWeather ? (
+          <Text style={styles.weatherText}>
+            {currentWeather.condition || 'Unknown'} · {Math.round(currentWeather.temperature ?? 0)}°F · precip {(Math.round((currentWeather.precipitationProbability ?? 0) * 100))}% · UV {currentWeather.uvIndex ?? '—'} · {weatherClass}
+          </Text>
+        ) : (
+          <Text style={styles.weatherText}>Unavailable</Text>
+        )}
+      </View>
+
       <Text style={styles.title}>Search Locations</Text>
       <View style={styles.mapContainer}>
         <MapView
@@ -334,11 +390,27 @@ function SearchScreen({ route }) {
         onPress={handleSearch}
       />
 
-      {results.map((result) => (
-        <View key={result.id || index} style={{ marginBottom: 20, padding: 10, backgroundColor: '#fff', borderRadius: 8 }}>
-          <Text style={styles.value}>
-            {JSON.stringify(result, null, 2)}
-          </Text>
+      {results.map((result, index) => (
+        <View key={result.id ?? index} style={styles.card}>
+          {result.image_url ? (
+            <Image
+              source={{ uri: result.image_url }}
+              style={styles.cardImage}
+            />
+          ) : null}
+
+          <View style={styles.cardContent}>
+            <Text style={styles.cardName}>{result.name}</Text>
+            {result.outdoor_indicator ? (
+              <Text style={styles.cardMeta}>{result.outdoor_indicator}</Text>
+            ) : null}
+            {result.weather_warning ? (
+              <Text style={styles.warningText}>{result.weather_warning}</Text>
+            ) : null}
+            {typeof result.distance_meters === 'number' ? (
+              <Text style={styles.cardMeta}>{Math.round(result.distance_meters)} m away</Text>
+            ) : null}
+          </View>
 
           <TouchableOpacity 
             onPress={async () => {
@@ -459,9 +531,32 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
   },
+  cardMeta: {
+    marginTop: 6,
+    color: '#444'
+  },
+  warningText: {
+    marginTop: 8,
+    color: '#8a1f11',
+    fontWeight: '600'
+  },
   cardDistance: {
     fontSize: 14,
     color: '#666',
     marginTop: 5,
+  }
+  ,
+  weatherBanner: {
+    backgroundColor: '#eef6ff',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12
+  },
+  weatherTitle: {
+    fontWeight: '700',
+    marginBottom: 4
+  },
+  weatherText: {
+    color: '#333'
   }
 });

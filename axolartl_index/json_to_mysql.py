@@ -6,8 +6,7 @@ from typing import Dict, Iterable, List, Set
 DB_CONFIG = {
     'host': 'localhost',
     'database': 'axolartl',
-    'user': 'axolotl',
-    'password': '3axolotls'
+    'user': 'root',
 }
 
 GEOJSON_FILE = 'raw_overpass_data.geojson'
@@ -32,6 +31,90 @@ NON_SEMANTIC_KEYS = {
 }
 KEYWORD_TERM_MAX_LEN = 50
 
+# Only index tags that are likely to be visually descriptive for artists.
+# Everything else (addresses, lanes, reference ids, etc.) bloats TF-IDF and
+# dilutes match quality.
+ALLOWED_KEYS = {
+    # Natural / outdoors
+    'natural',
+    'water',
+    'wetland',
+    'landuse',
+    'surface',
+    'garden:type',
+    'leisure',
+
+    # Points of interest / content
+    'tourism',
+    'amenity',
+    'historic',
+    'ruins',
+    'memorial',
+
+    # Built environment / structures
+    'man_made',
+    'building',
+    'bridge',
+    'barrier',
+
+    # Art-specific tags present in your dataset
+    'artwork_type',
+    'material',
+    'artist_name',
+}
+
+# For some keys, only a subset of values are meaningful/descriptive.
+ALLOWED_VALUES_BY_KEY = {
+    'landuse': {'grass'},
+    'leisure': {'park', 'garden', 'dog_park'},
+    'tourism': {'artwork', 'viewpoint', 'picnic_site'},
+    'amenity': {'fountain', 'library'},
+    'man_made': {'bridge', 'pier'},
+    'historic': {'ruins', 'memorial', 'monument', 'building', 'district', 'yes', 'aircraft', 'battlefield', 'manor', 'factory'},
+    'water': {'lake', 'pond', 'reservoir', 'river', 'stream', 'basin', 'fountain'},
+    'wetland': {'marsh', 'saltmarsh'},
+    'natural': {'beach', 'water', 'wetland', 'peak'},
+    'artwork_type': {'bust', 'installation', 'mural', 'sculpture', 'statue', 'stone'},
+    'material': {'bronze', 'concrete', 'metal', 'rock', 'stainless_steel', 'steel', 'stone', 'wood'},
+    'surface': {'asphalt', 'concrete', 'grass', 'metal', 'paved', 'paving_stones', 'plastic', 'sand', 'unpaved', 'wood'},
+}
+
+# Explicitly ignore noisy keys even if they slip past NON_SEMANTIC_KEYS.
+IGNORED_KEY_SUBSTRINGS = (
+    'addr:',
+    ':lanes',
+    'destination:',
+    'maxspeed',
+    'check_date',
+    'source_ref',
+    'gnis:',
+    'name:etymology',
+    'wikidata',
+    'wikipedia',
+    'ref:',
+    'old_ref',
+    'bridge_ref',
+    'inscription',
+    'operator',
+    'opening_hours',
+    'contact:',
+)
+
+
+def is_descriptive_value(value: str) -> bool:
+    if not value:
+        return False
+    # Numeric ids, postcodes, elevations, house numbers, etc.
+    digits = sum(c.isdigit() for c in value)
+    if digits >= max(4, int(0.6 * len(value))):
+        return False
+    # Pipe/semicolon-heavy multi-valued lane metadata etc.
+    if '|' in value or ';' in value:
+        return False
+    if 'http://' in value or 'https://' in value:
+        return False
+    return True
+
 
 def normalize_tag_value(value) -> str:
     """Normalizes OSM tag values to keyword-safe lowercase strings."""
@@ -51,7 +134,20 @@ def is_meaningful_tag(key: str, value: str) -> bool:
         return False
     if key in NON_SEMANTIC_KEYS:
         return False
+    if any(substr in key for substr in IGNORED_KEY_SUBSTRINGS):
+        return False
+    if key not in ALLOWED_KEYS:
+        return False
+    allowed_values = ALLOWED_VALUES_BY_KEY.get(key)
+    if allowed_values is not None and value not in allowed_values:
+        return False
     if len(value) > 80:
+        return False
+    if key == 'artist_name':
+        # Allow multiple artist names separated by semicolons.
+        if '|' in value:
+            return False
+    elif not is_descriptive_value(value):
         return False
     return True
 
@@ -180,6 +276,20 @@ def insert_data():
                 )
 
         conn.commit()
+
+        # Remove any keywords that are no longer referenced by any location.
+        # This keeps the keywords table focused on the descriptive index terms
+        # we actually use for TF-IDF matching.
+        cursor.execute(
+            """
+            DELETE k
+            FROM keywords k
+            LEFT JOIN location_keywords lk ON lk.keyword_id = k.id
+            WHERE lk.keyword_id IS NULL
+            """
+        )
+        conn.commit()
+
         print(
             f"Done. Indexed {processed} locations, skipped {skipped} "
             f"out of {total_features} features."

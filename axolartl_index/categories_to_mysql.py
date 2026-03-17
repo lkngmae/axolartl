@@ -1,16 +1,17 @@
 import json
 import mysql.connector
 from mysql.connector import Error
-from typing import Dict, Iterable, List, Set
+from typing import Dict, Iterable, List, Set, Optional
 
 DB_CONFIG = {
     'host': 'localhost',
     'database': 'axolartl',
-    'user': 'axolotl',
-    'password': '3axolotls'
+    'user': 'root'
 }
 
 GEOJSON_FILE = 'raw_overpass_data.geojson'
+CATEGORY_SYNONYMS_FILE = 'category_synonyms.json'
+KEYWORD_TERM_MAX_LEN = 50
 
 
 def normalize(value) -> str:
@@ -70,6 +71,8 @@ def derive_categories(tags: Dict[str, object]) -> List[str]:
 
     if tourism == 'viewpoint':
         categories.add('view')
+    if natural in {'peak'}:
+        categories.add('view')
 
     if (
         highway in {
@@ -84,6 +87,38 @@ def derive_categories(tags: Dict[str, object]) -> List[str]:
 
     return sorted(categories)
 
+def load_category_synonyms() -> Dict[str, List[str]]:
+    """
+    Loads category -> synonym list mapping.
+
+    Expected file format:
+      { "history": ["history", "old", ...], "art": ["art", ...], ... }
+    """
+    try:
+        with open(CATEGORY_SYNONYMS_FILE, 'r') as f:
+            data = json.load(f)
+        if isinstance(data, dict):
+            cleaned: Dict[str, List[str]] = {}
+            for raw_key, raw_values in data.items():
+                key = normalize(raw_key)
+                if not key:
+                    continue
+                if not isinstance(raw_values, list):
+                    continue
+                values: List[str] = []
+                for v in raw_values:
+                    term = normalize(v)
+                    if term:
+                        values.append(term)
+                cleaned[key] = values
+            return cleaned
+    except FileNotFoundError:
+        pass
+    except json.JSONDecodeError:
+        pass
+
+    return {}
+
 
 def get_or_create_category_id(cursor, name: str) -> int:
     cursor.execute("SELECT id FROM categories WHERE LOWER(name) = LOWER(%s)", (name,))
@@ -91,6 +126,26 @@ def get_or_create_category_id(cursor, name: str) -> int:
     if result:
         return result[0]
     cursor.execute("INSERT INTO categories (name) VALUES (%s)", (name,))
+    return cursor.lastrowid
+
+def get_or_create_keyword_id(cursor, term: str) -> Optional[int]:
+    """
+    Finds a keyword's ID. If it doesn't exist, creates it.
+
+    Returns None for empty or overlong terms (keywords.term is VARCHAR(50)).
+    """
+    normalized = normalize(term)
+    if not normalized:
+        return None
+    if len(normalized) > KEYWORD_TERM_MAX_LEN:
+        return None
+
+    cursor.execute("SELECT id FROM keywords WHERE term = %s", (normalized,))
+    result = cursor.fetchone()
+    if result:
+        return result[0]
+
+    cursor.execute("INSERT INTO keywords (term) VALUES (%s)", (normalized,))
     return cursor.lastrowid
 
 
@@ -104,6 +159,8 @@ def insert_data() -> None:
             return
 
         cursor = conn.cursor()
+
+        category_synonyms = load_category_synonyms()
 
         with open(GEOJSON_FILE, 'r') as f:
             data = json.load(f)
@@ -167,6 +224,35 @@ def insert_data() -> None:
                     """,
                     rows
                 )
+
+            # Add per-category synonym terms into the keyword index, so TF-IDF can
+            # match plain-language queries (e.g. "ruins") even when the source
+            # OSM tags are structured (e.g. historic:*).
+            synonym_terms: Set[str] = set()
+            for category_name in categories:
+                key = normalize(category_name)
+                if not key:
+                    continue
+                synonym_terms.add(key)
+                for term in category_synonyms.get(key, []):
+                    synonym_terms.add(normalize(term))
+
+            if synonym_terms:
+                kw_rows = []
+                for term in sorted(synonym_terms):
+                    kw_id = get_or_create_keyword_id(cursor, term)
+                    if kw_id is None:
+                        continue
+                    kw_rows.append((clean_id, kw_id))
+
+                if kw_rows:
+                    cursor.executemany(
+                        """
+                        INSERT IGNORE INTO location_keywords (location_id, keyword_id)
+                        VALUES (%s, %s)
+                        """,
+                        kw_rows
+                    )
 
             indexed += 1
             if index % 250 == 0 or index == total_features:

@@ -1,7 +1,19 @@
 require('dotenv').config();
 const mysql = require('mysql2/promise');
 const { getCurrentWeather, classifyWeather } = require('./weather');
-const { computeLocationWeatherScore } = require('./weatherScoring');
+const {
+    computeLocationIndoorScore,
+    outdoorIndicatorText,
+    buildWeatherWarning
+} = require('./weatherSuitability');
+
+const SCORE_WEIGHTS = {
+    cosine: 0.6,
+    category: 0.15,
+    distance: 0.25
+};
+
+const LOG_SCORES = process.env.LOG_SCORES !== 'false';
 
 // Words to exclude from query expansion and scoring. These carry no
 // meaningful semantic signal and would inflate match counts if included.
@@ -223,9 +235,10 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
  *   4. Find candidate locations that share at least one keyword with the query.
  *   5. Optionally filter candidates to those belonging to a named category.
  *   6. Score each candidate with a weighted combination of:
- *        - Cosine similarity (TF-IDF vectors)     weight 0.55
- *        - Normalised inverse distance             weight 0.30
- *        - Category membership bonus              weight 0.15
+ *        - Cosine similarity (TF-IDF vectors)     weight 0.50
+ *        - Normalised inverse distance           weight 0.25
+ *        - Category score (penalises broad tags)  weight 0.10
+ *        - (Weather no longer affects ranking; it is used for UI warnings)
  *   7. Discard candidates outside maxRadius and sort by final score descending.
  *
  * @param {mysql.Pool} pool            - Shared mysql2 connection pool. A connection
@@ -252,11 +265,11 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
   // TODO: fix here
 // async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTime,
 //     selectedCategory) {
-    const connection = await mysql.createConnection({
+/*     const connection = await mysql.createConnection({
         host: 'localhost',
         user: process.env.DB_USER,
         database: 'axolartl'
-    });
+    }); */
 
     try {
         // Step 1: Convert the raw query string into normalised keyword tokens.
@@ -344,6 +357,7 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
         }
 
         let categoryMatches = new Set();
+        let categoryCountByLocationId = {};
 
         if (categoryId) {
             const locPlaceholders = candidateIds.map(() => '?').join(',');
@@ -357,6 +371,22 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             );
 
             categoryMatches = new Set(catRows.map(r => r.location_id));
+
+            // Penalize locations that match the selected category but are tagged
+            // with many categories overall (broad/ambiguous). Intuition: a
+            // location that is "history" and nothing else is a stronger match
+            // than one that is history+view+urban+water+...
+            const [countRows] = await connection.execute(
+                `SELECT location_id, COUNT(*) AS category_count
+                 FROM location_categories
+                 WHERE location_id IN (${locPlaceholders})
+                 GROUP BY location_id`,
+                candidateIds
+            );
+
+            countRows.forEach(row => {
+                categoryCountByLocationId[row.location_id] = Number(row.category_count) || 0;
+            });
         }
 
         // Get location-keyword pairs
@@ -383,6 +413,23 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
         });
         allLocationKeywordRows.forEach(row => {
             locationKeywordIds[row.location_id].push(row.keyword_id);
+        });
+
+        // Fetch keyword terms (strings) per location for suitability warnings.
+        const [locationKeywordTermRows] = await connection.execute(
+            `SELECT lk.location_id, k.term
+             FROM location_keywords lk
+             JOIN keywords k ON k.id = lk.keyword_id
+             WHERE lk.location_id IN (${locPlaceholders})`,
+            candidateIds
+        );
+
+        const locationKeywordTerms = {};
+        candidateIds.forEach(id => {
+            locationKeywordTerms[id] = [];
+        });
+        locationKeywordTermRows.forEach(row => {
+            locationKeywordTerms[row.location_id].push(row.term);
         });
 
         // Build location vectors
@@ -462,28 +509,44 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             const distanceScore = 1 - (distance / maxRadius);
 
             // Binary bonus: 1 if the location belongs to the selected category,
-            // 0 otherwise.
-            const categoryScore = categoryMatches.has(locId) ? 1 : 0;
-            const weatherScore = computeLocationWeatherScore(
-                locationKeywordIds[locId],
-                weatherClass
-            );
+            // 0 otherwise. Penalize locations with many categories so that
+            // "narrow" locations rank higher than "broad" ones.
+            const categoryScore = categoryMatches.has(locId)
+                ? 1 / Math.max(1, categoryCountByLocationId[locId] || 1)
+                : 0;
 
             // Weighted final score combining all three signals.
             const finalScore =
-                0.5 * cosine +
-                0.1 * categoryScore +
-                0.25 * distanceScore +
-                0.15 * weatherScore;
+                SCORE_WEIGHTS.cosine * cosine +
+                SCORE_WEIGHTS.category * categoryScore +
+                SCORE_WEIGHTS.distance * distanceScore;
+
+            const indoorScore = computeLocationIndoorScore(locationKeywordTerms[locId]);
+            const warning = buildWeatherWarning(weatherClass, indoorScore);
 
             results.push({
                 ...location,
+                keyword_terms: locationKeywordTerms[locId] || [],
                 cosine_score: cosine,
                 category_score: categoryScore,
-                weather_score: weatherScore,
                 weather_class: weatherClass,
                 weather: currentWeather,
+                indoor_score: indoorScore,
+                outdoor_indicator: outdoorIndicatorText(indoorScore),
+                weather_warning: warning,
                 distance_meters: distance,
+                distance_score: distanceScore,
+                score_weights: SCORE_WEIGHTS,
+                score_components: {
+                    cosine,
+                    category: categoryScore,
+                    distance: distanceScore
+                },
+                score_contributions: {
+                    cosine: SCORE_WEIGHTS.cosine * cosine,
+                    category: SCORE_WEIGHTS.category * categoryScore,
+                    distance: SCORE_WEIGHTS.distance * distanceScore
+                },
                 final_score: finalScore
             });
         }
@@ -519,6 +582,27 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
                     }
                 }
             }
+
+        if (LOG_SCORES) {
+            const weightsPct = {
+                cosine_pct: Math.round(SCORE_WEIGHTS.cosine * 100),
+                category_pct: Math.round(SCORE_WEIGHTS.category * 100),
+                distance_pct: Math.round(SCORE_WEIGHTS.distance * 100)
+            };
+            console.log('=== SCORE WEIGHTS ===', weightsPct);
+
+            results.slice(0, 10).forEach((r, idx) => {
+                console.log(`[${idx + 1}] ${r.name}`, {
+                    overall_score: r.final_score,
+                    cosine_score: r.cosine_score,
+                    distance_meters: r.distance_meters,
+                    distance_score: r.distance_score,
+                    category_score: r.category_score,
+                    weights_pct: weightsPct
+                });
+            });
+        }
+
         return results;
     } finally {
         // Release the connection back to the pool rather than closing it,

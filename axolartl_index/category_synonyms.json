@@ -1,0 +1,68 @@
+{
+  "history": [
+    "history",
+    "old",
+    "ruins",
+    "decay",
+    "stone",
+    "ancient",
+    "weathered",
+    "rustic"
+  ],
+  "art": [
+    "art",
+    "sculpture",
+    "culture",
+    "statue",
+    "creative",
+    "monument",
+    "installation"
+  ],
+  "view": [
+    "view",
+    "panorama",
+    "landscape",
+    "horizon",
+    "scenic",
+    "lookout",
+    "high"
+  ],
+  "greenery": [
+    "greenery",
+    "park",
+    "garden",
+    "trees",
+    "grassy",
+    "nature"
+  ],
+  "water": [
+    "water",
+    "lake",
+    "river",
+    "pond",
+    "stream",
+    "fountain"
+  ],
+  "urban": [
+    "urban",
+    "city",
+    "street",
+    "downtown",
+    "sidewalk",
+    "alley"
+  ],
+  "structure": [
+    "structure",
+    "bridge",
+    "architecture",
+    "building",
+    "pier"
+  ],
+  "beach": [
+    "beach",
+    "coast",
+    "shore",
+    "sand",
+    "seaside"
+  ]
+}

@@ -40,7 +40,17 @@ app.post('/search', async (req, res) => {
     selectedCategory
   );
 
-  res.json(results);
+  // Keep weather data accessible even if the user scrolls, and even if no
+  // results match. The frontend expects an object with { weather, weather_class, results }.
+  const weather = results?.[0]?.weather ?? null;
+  const weatherClass = results?.[0]?.weather_class ?? 'great_outdoor';
+  const scoreWeights = results?.[0]?.score_weights ?? { cosine: 0.6, category: 0.15, distance: 0.25 };
+  res.json({
+    weather,
+    weather_class: weatherClass,
+    score_weights: scoreWeights,
+    results
+  });
 });
 
 
