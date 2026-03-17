@@ -14,6 +14,9 @@ const SCORE_WEIGHTS = {
 };
 
 const LOG_SCORES = process.env.LOG_SCORES !== 'false';
+const LOG_KEYWORDS_MAX = Number.isFinite(Number(process.env.LOG_KEYWORDS_MAX))
+    ? Number(process.env.LOG_KEYWORDS_MAX)
+    : 80;
 
 // Words to exclude from query expansion and scoring. These carry no
 // meaningful semantic signal and would inflate match counts if included.
@@ -34,39 +37,190 @@ const SYNONYM_MAP = {
     beach: ['natural:beach']
 };
 
+function normalizeNameForMatch(name) {
+    if (!name) return [];
+    return String(name)
+        .toLowerCase()
+        .replace(/[^\w\s]/g, ' ')
+        .split(/\s+/)
+        .map(t => t.trim())
+        .filter(t => t && !STOPWORDS.has(t));
+}
 
-async function getGooglePlaceImage(lat, lon, keyword = "") {
-    const searchUrl = new URL("https://maps.googleapis.com/maps/api/place/nearbysearch/json");
-    searchUrl.search = new URLSearchParams({
-        location: `${lat},${lon}`,
-        radius: 1000,
-        keyword: keyword, // TODO: adding multiple keywords in a list?
-        key: process.env.GOOGLE_PLACES_API_KEY
+function jaccardSimilarityTokens(aTokens, bTokens) {
+    const a = new Set(aTokens);
+    const b = new Set(bTokens);
+    if (a.size === 0 || b.size === 0) return 0;
+    let intersection = 0;
+    for (const t of a) {
+        if (b.has(t)) intersection += 1;
+    }
+    const union = a.size + b.size - intersection;
+    return union === 0 ? 0 : intersection / union;
+}
+
+function getMapsApiKey() {
+    return process.env.GOOGLE_MAPS_API_KEY || process.env.GOOGLE_PLACES_API_KEY || null;
+}
+
+function toPlacePhotoUrl(photoReference, apiKey) {
+    return `https://maps.googleapis.com/maps/api/place/photo?maxwidth=900&photo_reference=${photoReference}&key=${apiKey}`;
+}
+
+async function findPlacePhotoByName(lat, lon, locationName) {
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+    if (!apiKey) return null;
+
+    const name = String(locationName || '').trim();
+    if (!name || name.toLowerCase().includes('untitled')) return null;
+
+    const url = new URL('https://maps.googleapis.com/maps/api/place/findplacefromtext/json');
+    url.search = new URLSearchParams({
+        input: name,
+        inputtype: 'textquery',
+        fields: 'place_id,name,geometry,photos',
+        locationbias: `circle:750@${lat},${lon}`,
+        key: apiKey
     });
 
-    try{
-        console.log('Sending Google Places request...')
-        const response = await fetch(searchUrl);
+    try {
+        const response = await fetch(url);
         const data = await response.json();
-        console.log(`Google Places Responded with status:${data.status}`)
-        // If a location is found and the location has photos.
-        if (data.results && data.results.length > 0) {
-            console.log(`Found ${data.results.length} places nearby. Scanning for photos...`);
-            for (let i = 0; i < data.results.length; i++) {
-                const place = data.results[i];
-                if(place.photos && place.photos.length > 0) {
-                    console.log(`Found photo at "${place.name}" (Result #${i + 1})`);
-                    const photoReference = place.photos[0].photo_reference;
-                    const photoURL = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photoReference}&key=${process.env.GOOGLE_PLACES_API_KEY}`;
-                    return photoURL;
-                }
+        if (data.status !== 'OK' || !Array.isArray(data.candidates)) return null;
+
+        const queryTokens = normalizeNameForMatch(name);
+        let best = null;
+
+        for (const candidate of data.candidates) {
+            const photos = candidate.photos;
+            if (!photos || photos.length === 0) continue;
+
+            const candName = candidate.name || '';
+            const nameSim = jaccardSimilarityTokens(queryTokens, normalizeNameForMatch(candName));
+
+            const candLat = candidate.geometry?.location?.lat;
+            const candLon = candidate.geometry?.location?.lng;
+            const dist =
+                typeof candLat === 'number' && typeof candLon === 'number'
+                    ? haversineDistance(lat, lon, candLat, candLon)
+                    : 999999;
+
+            const distScore = Math.max(0, 1 - dist / 750);
+            const score = 0.7 * nameSim + 0.3 * distScore;
+
+            if (!best || score > best.score) {
+                best = {
+                    score,
+                    nameSim,
+                    dist,
+                    photoRef: photos[0]?.photo_reference
+                };
             }
         }
-    } catch (error) {
-        console.error ("Google Places API Error: ", error);    
-    }
 
-    return null;
+        if (!best || !best.photoRef) return null;
+        if (best.nameSim < 0.25 && best.dist > 200) return null;
+
+        return toPlacePhotoUrl(best.photoRef, apiKey);
+    } catch (error) {
+        console.error('Google FindPlace API Error: ', error);
+        return null;
+    }
+}
+
+async function nearbySearchPhoto(lat, lon, keyword) {
+    const apiKey = process.env.GOOGLE_PLACES_API_KEY;
+    if (!apiKey) return null;
+
+    const kw = String(keyword || '').trim();
+    if (!kw) return null;
+
+    const searchUrl = new URL('https://maps.googleapis.com/maps/api/place/nearbysearch/json');
+    searchUrl.search = new URLSearchParams({
+        location: `${lat},${lon}`,
+        radius: 600,
+        keyword: kw,
+        key: apiKey
+    });
+
+    try {
+        const response = await fetch(searchUrl);
+        const data = await response.json();
+        if (data.status !== 'OK' || !Array.isArray(data.results)) return null;
+
+        const queryTokens = normalizeNameForMatch(kw);
+        let best = null;
+
+        for (const place of data.results) {
+            if (!place.photos || place.photos.length === 0) continue;
+            const placeName = place.name || '';
+            const nameSim = jaccardSimilarityTokens(queryTokens, normalizeNameForMatch(placeName));
+            const pLat = place.geometry?.location?.lat;
+            const pLon = place.geometry?.location?.lng;
+            const dist =
+                typeof pLat === 'number' && typeof pLon === 'number'
+                    ? haversineDistance(lat, lon, pLat, pLon)
+                    : 999999;
+            const distScore = Math.max(0, 1 - dist / 600);
+            const score = 0.6 * nameSim + 0.4 * distScore;
+
+            if (!best || score > best.score) {
+                best = { score, photoRef: place.photos[0]?.photo_reference, dist, nameSim };
+            }
+        }
+
+        if (!best || !best.photoRef) return null;
+        if (best.nameSim < 0.2 && best.dist > 200) return null;
+
+        return toPlacePhotoUrl(best.photoRef, apiKey);
+    } catch (error) {
+        console.error('Google NearbySearch API Error: ', error);
+        return null;
+    }
+}
+
+async function getStreetViewImage(lat, lon) {
+    const apiKey = getMapsApiKey();
+    if (!apiKey) return null;
+
+    const metaUrl = new URL('https://maps.googleapis.com/maps/api/streetview/metadata');
+    metaUrl.search = new URLSearchParams({
+        location: `${lat},${lon}`,
+        radius: '80',
+        key: apiKey
+    });
+
+    try {
+        const metaResp = await fetch(metaUrl);
+        const meta = await metaResp.json();
+        if (meta.status !== 'OK') return null;
+
+        const imgUrl = new URL('https://maps.googleapis.com/maps/api/streetview');
+        imgUrl.search = new URLSearchParams({
+            size: '900x600',
+            location: `${lat},${lon}`,
+            fov: '90',
+            pitch: '0',
+            key: apiKey
+        });
+        return imgUrl.toString();
+    } catch (error) {
+        console.error('Google StreetView API Error: ', error);
+        return null;
+    }
+}
+
+async function getGooglePlaceImage(lat, lon, locationName, selectedCategory = "") {
+    const byName = await findPlacePhotoByName(lat, lon, locationName);
+    if (byName) return byName;
+
+    const nearbyByName = await nearbySearchPhoto(lat, lon, locationName);
+    if (nearbyByName) return nearbyByName;
+
+    const byCategory = await nearbySearchPhoto(lat, lon, selectedCategory);
+    if (byCategory) return byCategory;
+
+    return await getStreetViewImage(lat, lon);
 }
 
 /**
@@ -432,6 +586,23 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             locationKeywordTerms[row.location_id].push(row.term);
         });
 
+        // Fetch category names per location for logging/debugging (and optional UI use).
+        const [locationCategoryRows] = await connection.execute(
+            `SELECT lc.location_id, c.name
+             FROM location_categories lc
+             JOIN categories c ON c.id = lc.category_id
+             WHERE lc.location_id IN (${locPlaceholders})`,
+            candidateIds
+        );
+
+        const locationCategories = {};
+        candidateIds.forEach(id => {
+            locationCategories[id] = [];
+        });
+        locationCategoryRows.forEach(row => {
+            locationCategories[row.location_id].push(row.name);
+        });
+
         // Build location vectors
         const locationVectors = {};
         candidateIds.forEach(id => locationVectors[id] = {});
@@ -527,6 +698,7 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             results.push({
                 ...location,
                 keyword_terms: locationKeywordTerms[locId] || [],
+                categories: locationCategories[locId] || [],
                 cosine_score: cosine,
                 category_score: categoryScore,
                 weather_class: weatherClass,
@@ -562,7 +734,12 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             const isPlaceholder = loc.image_url && loc.image_url.includes('via.placeholder.com');
             const needsUpdate = !loc.image_url || isPlaceholder || (now - lastUpdated > THIRTY_DAYS_MS);
             if (needsUpdate) {
-                    const newImageUrl = await getGooglePlaceImage(loc.latitude, loc.longitude, selectedCategory || "");
+                    const newImageUrl = await getGooglePlaceImage(
+                        loc.latitude,
+                        loc.longitude,
+                        loc.name,
+                        selectedCategory || ""
+                    );
                     
                     if (newImageUrl) {
                         loc.image_url = newImageUrl;
@@ -577,7 +754,7 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
                         ).catch(err => console.error("DB Update Error:", err));
                         
                         if (!loc.image_url) {
-                            loc.image_url = "https://via.placeholder.com/300x200?text=No+Google+Street+View";
+                            loc.image_url = "https://via.placeholder.com/300x200?text=No+Photo+Available";
                         }
                     }
                 }
@@ -598,6 +775,14 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
                     distance_meters: r.distance_meters,
                     distance_score: r.distance_score,
                     category_score: r.category_score,
+                    categories: r.categories,
+                    keyword_terms_count: Array.isArray(r.keyword_terms) ? r.keyword_terms.length : 0,
+                    keyword_terms: Array.isArray(r.keyword_terms)
+                        ? r.keyword_terms.slice(0, LOG_KEYWORDS_MAX)
+                        : [],
+                    keyword_terms_truncated: Array.isArray(r.keyword_terms)
+                        ? r.keyword_terms.length > LOG_KEYWORDS_MAX
+                        : false,
                     weights_pct: weightsPct
                 });
             });
