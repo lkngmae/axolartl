@@ -161,7 +161,7 @@ function SearchScreen({ route }) {
     console.log("Radius:", radius);
 
     try {
-      const response = await fetch('http://your-local-host:3000/search', {
+      const response = await fetch('http://uriphere:3000/search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
