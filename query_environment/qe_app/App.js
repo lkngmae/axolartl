@@ -16,42 +16,124 @@ import {
   TouchableOpacity,
   StyleSheet,
   TextInput,
-  ScrollView
+  ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 
 const Stack = createNativeStackNavigator();
 
-function PreferencesScreen({ navigation }) {
-  const [selected, setSelected] = useState(null);
+const PREFERENCE_OPTIONS = ['STRUCTURE', 'URBAN', 'GREENERY', 'WATER', 'HISTORY', 'BEACH', 'VIEW', 'ART'];
+const DISTANCE_OPTIONS = ['1 MI', '5 MI', '10 MI', '25 MI', '50 MI'];
 
-  const options = ['structure', 'urban', 'greenery', 'water', 'history', 'beach', 'view', 'art'];
+function miToMeters(miStr) {
+  return Math.round(parseFloat(miStr) * 1609.34).toString();
+}
+
+function PreferencesScreen({ navigation }) {
+  const [selectedPreferences, setSelectedPreferences] = useState([]);
+  const [selectedDistance, setSelectedDistance] = useState('10 MI');
+  const [query, setQuery] = useState('');
+  const [activeDropdown, setActiveDropdown] = useState(null); // 'preferences' | 'distance' | null
+
+  const togglePreference = (item) => {
+    setSelectedPreferences(prev =>
+      prev.includes(item) ? prev.filter(p => p !== item) : [...prev, item]
+    );
+  };
+
+  const handleSearch = () => {
+    navigation.navigate('Search', {
+      preference: selectedPreferences[0]?.toLowerCase() || 'urban',
+      preferences: selectedPreferences.map(p => p.toLowerCase()),
+      initialQuery: query,
+      initialRadius: miToMeters(selectedDistance),
+    });
+  };
 
   return (
-    <View style={styles.preferencesContainer}>
-      <Text style={styles.title}>What do you want to draw?</Text>
-
-      {options.map((item) => (
-        <TouchableOpacity
-          key={item}
-          style={[
-            styles.option,
-            selected === item && styles.selectedOption
-          ]}
-          onPress={() => setSelected(item)}
-        >
-          <Text style={styles.optionText}>{item}</Text>
+    <SafeAreaView style={styles.preferencesBackground}>
+      <View style={styles.preferencesCard}>
+        {/* Search button */}
+        <TouchableOpacity style={styles.searchIconButton} onPress={handleSearch}>
+          <Text style={styles.searchIconText}>⌕</Text>
         </TouchableOpacity>
-      ))}
 
-      <Button
-        title="Continue"
-        disabled={!selected}
-        onPress={() =>
-          navigation.navigate('Search', { preference: selected })
-        }
-      />
-    </View>
+        {/* Query text input */}
+        <TextInput
+          style={styles.queryInput}
+          placeholder="What specific subject or scene would you like to capture?"
+          placeholderTextColor="#7BBFBE"
+          value={query}
+          onChangeText={setQuery}
+          multiline
+          textAlignVertical="top"
+        />
+
+        {/* Filter buttons */}
+        <View style={styles.filterRow}>
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={() => setActiveDropdown(d => d === 'preferences' ? null : 'preferences')}
+          >
+            <Text style={styles.filterButtonText}>PREFERENCES  ▾</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={() => setActiveDropdown(d => d === 'distance' ? null : 'distance')}
+          >
+            <Text style={styles.filterButtonText}>DISTANCE  ▾</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.filterButton, styles.filterIconOnly]}>
+            <Text style={styles.filterButtonText}>⊟</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Inline dropdowns */}
+        {activeDropdown === 'preferences' && (
+          <View style={styles.dropdown}>
+            {PREFERENCE_OPTIONS.map(item => (
+              <TouchableOpacity
+                key={item}
+                style={[styles.dropdownItem, selectedPreferences.includes(item) && styles.dropdownItemActive]}
+                onPress={() => togglePreference(item)}
+              >
+                <Text style={[styles.dropdownItemText, selectedPreferences.includes(item) && styles.dropdownItemTextActive]}>
+                  {item}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+        {activeDropdown === 'distance' && (
+          <View style={styles.dropdown}>
+            {DISTANCE_OPTIONS.map(d => (
+              <TouchableOpacity
+                key={d}
+                style={[styles.dropdownItem, selectedDistance === d && styles.dropdownItemActive]}
+                onPress={() => { setSelectedDistance(d); setActiveDropdown(null); }}
+              >
+                <Text style={[styles.dropdownItemText, selectedDistance === d && styles.dropdownItemTextActive]}>
+                  {d}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+
+        {/* Active filter pills */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.pillsRow} contentContainerStyle={styles.pillsContent}>
+          {selectedPreferences.map(item => (
+            <TouchableOpacity key={item} style={styles.pill} onPress={() => togglePreference(item)}>
+              <Text style={styles.pillText}>{item}  ×</Text>
+            </TouchableOpacity>
+          ))}
+          <View style={styles.pill}>
+            <Text style={styles.pillText}>{selectedDistance}  ×</Text>
+          </View>
+        </ScrollView>
+      </View>
+    </SafeAreaView>
   );
 }
 
@@ -369,6 +451,7 @@ export default function App() {
         <Stack.Screen
           name="Preferences"
           component={PreferencesScreen}
+          options={{ headerShown: false }}
         />
         <Stack.Screen
           name="Search"
@@ -387,6 +470,118 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 36
   },
+  // --- PreferencesScreen styles ---
+  preferencesBackground: {
+    flex: 1,
+    backgroundColor: '#7BBFBE',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  preferencesCard: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 24,
+    padding: 20,
+    paddingTop: 24,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
+  },
+  searchIconButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: '#F5E6A3',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  searchIconText: {
+    fontSize: 24,
+    color: '#B8960C',
+  },
+  queryInput: {
+    fontSize: 22,
+    color: '#7BBFBE',
+    minHeight: 140,
+    paddingRight: 56,
+    paddingTop: 0,
+    marginBottom: 24,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 12,
+  },
+  filterButton: {
+    backgroundColor: '#E8607A',
+    borderRadius: 24,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  filterIconOnly: {
+    paddingHorizontal: 14,
+  },
+  filterButtonText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 13,
+    letterSpacing: 0.5,
+  },
+  dropdown: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#E8607A',
+    borderRadius: 12,
+    marginBottom: 10,
+    overflow: 'hidden',
+  },
+  dropdownItem: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  dropdownItemActive: {
+    backgroundColor: '#fde8ec',
+  },
+  dropdownItemText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#E8607A',
+    letterSpacing: 0.5,
+  },
+  dropdownItemTextActive: {
+    color: '#c0354f',
+  },
+  pillsRow: {
+    marginTop: 4,
+  },
+  pillsContent: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingVertical: 4,
+  },
+  pill: {
+    borderWidth: 1.5,
+    borderColor: '#E8607A',
+    borderRadius: 24,
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+  },
+  pillText: {
+    color: '#E8607A',
+    fontWeight: '600',
+    fontSize: 13,
+    letterSpacing: 0.5,
+  },
+  // --- legacy / unused preference styles (kept for reference) ---
   preferencesContainer: {
     flex: 1,
     justifyContent: 'center',
