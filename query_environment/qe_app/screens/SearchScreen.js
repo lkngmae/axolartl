@@ -1,20 +1,32 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, ScrollView, Image } from 'react-native';
+import { useState, useRef, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
+import { MaterialIcons } from '@expo/vector-icons';
+import FiltersModal from '../components/FiltersModal';
+import { miToMeters, TIME_MAP } from '../constants';
 import styles from '../styles/searchStyles';
 
 const FALLBACK_LOCATION = { latitude: 33.6437, longitude: -117.8391 };
 
 export default function SearchScreen({ route }) {
-  const { preference, initialQuery = '', initialRadius = '10000', initialTime = null } = route.params;
+  const { top: topInset } = useSafeAreaInsets();
+  const {
+    preference,
+    initialQuery = '',
+    initialDistanceLabel = '10 MI',
+    initialPreferences = [],
+    initialTime = null,
+    initialTimeLabel = null,
+  } = route.params;
+
   const mapRef = useRef(null);
 
   const [query, setQuery] = useState(initialQuery);
-  const [radius, setRadius] = useState(initialRadius);
-  const [customLat, setCustomLat] = useState('');
-  const [customLng, setCustomLng] = useState('');
-  const [customTime, setCustomTime] = useState(initialTime ?? '');
+  const [selectedPreferences, setSelectedPreferences] = useState(initialPreferences.map(p => p.toUpperCase()));
+  const [selectedDistance, setSelectedDistance] = useState(initialDistanceLabel);
+  const [selectedTime, setSelectedTime] = useState(initialTimeLabel);
 
   const [results, setResults] = useState([]);
   const [userLocation, setUserLocation] = useState(null);
@@ -24,6 +36,8 @@ export default function SearchScreen({ route }) {
     latitudeDelta: 0.08,
     longitudeDelta: 0.08,
   });
+  const [customLocation, setCustomLocation] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const initializeLocation = async () => {
@@ -34,8 +48,9 @@ export default function SearchScreen({ route }) {
 
       const coords = { latitude: location.latitude, longitude: location.longitude };
       setUserLocation(coords);
-      setMapRegion(prev => ({ ...prev, ...coords }));
-      mapRef.current?.animateToRegion({ ...coords, latitudeDelta: 0.08, longitudeDelta: 0.08 }, 400);
+      const region = { ...coords, latitudeDelta: 0.08, longitudeDelta: 0.08 };
+      setMapRegion(region);
+      mapRef.current?.animateToRegion(region, 400);
 
       const now = new Date();
       setCurrentTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
@@ -44,15 +59,23 @@ export default function SearchScreen({ route }) {
     initializeLocation();
   }, []);
 
+  const togglePreference = (item) => {
+    setSelectedPreferences(prev =>
+      prev.includes(item) ? prev.filter(p => p !== item) : [...prev, item]
+    );
+  };
+
+  const handleSelectTime = (t) => setSelectedTime(prev => prev === t ? null : t);
+
+  const handleSetLocation = () => {
+    setCustomLocation({ latitude: mapRegion.latitude, longitude: mapRegion.longitude });
+  };
+
   const handleSearch = async () => {
-    if (!userLocation && (customLat === '' || customLng === '')) return;
+    const loc = customLocation || userLocation;
+    if (!loc) return;
 
-    const finalLat = customLat !== '' ? parseFloat(customLat) : userLocation.latitude;
-    const finalLng = customLng !== '' ? parseFloat(customLng) : userLocation.longitude;
-    const finalTime = customTime !== '' ? customTime : currentTime;
-
-    console.log("\n===== FINAL FILTER VALUES USED =====");
-    console.log("Latitude:", finalLat, "Longitude:", finalLng, "Time:", finalTime, "Radius:", radius);
+    const finalTime = selectedTime ? TIME_MAP[selectedTime] : (initialTime ?? currentTime);
 
     try {
       const response = await fetch('http://your-local-host:3000/search', {
@@ -60,9 +83,9 @@ export default function SearchScreen({ route }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query,
-          userLat: finalLat,
-          userLng: finalLng,
-          maxRadius: parseFloat(radius),
+          userLat: loc.latitude,
+          userLng: loc.longitude,
+          maxRadius: parseFloat(miToMeters(selectedDistance)),
           currentTime: finalTime,
           selectedCategory: preference,
         }),
@@ -71,37 +94,41 @@ export default function SearchScreen({ route }) {
       const data = await response.json();
       setResults(data);
 
-      if (data.length > 0) {
-        const coordinates = data
-          .slice(0, 10)
-          .map(r => ({ latitude: parseFloat(r.latitude), longitude: parseFloat(r.longitude) }))
-          .filter(c => !Number.isNaN(c.latitude) && !Number.isNaN(c.longitude));
+      const coordinates = data
+        .slice(0, 10)
+        .map(r => ({ latitude: parseFloat(r.latitude), longitude: parseFloat(r.longitude) }))
+        .filter(c => !Number.isNaN(c.latitude) && !Number.isNaN(c.longitude));
 
-        if (coordinates.length > 1) {
-          mapRef.current?.fitToCoordinates(coordinates, {
-            edgePadding: { top: 40, right: 40, bottom: 40, left: 40 },
-            animated: true,
-          });
-        } else if (coordinates.length === 1) {
-          mapRef.current?.animateToRegion(
-            { ...coordinates[0], latitudeDelta: 0.02, longitudeDelta: 0.02 },
-            500
-          );
-        }
+      if (coordinates.length > 1) {
+        mapRef.current?.fitToCoordinates(coordinates, {
+          edgePadding: { top: 40, right: 40, bottom: 40, left: 40 },
+          animated: true,
+        });
+      } else if (coordinates.length === 1) {
+        mapRef.current?.animateToRegion(
+          { ...coordinates[0], latitudeDelta: 0.02, longitudeDelta: 0.02 },
+          500
+        );
       }
     } catch (error) {
-      console.error("Search error:", error);
+      console.error('Search error:', error);
     }
   };
 
   const displayResults = results.filter(r => r.image_url).slice(0, 10);
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-      <Text style={styles.title}>Search Locations</Text>
-
-      <View style={styles.mapContainer}>
-        <MapView ref={mapRef} style={styles.map} initialRegion={mapRegion} showsUserLocation showsMyLocationButton>
+    <SafeAreaView style={styles.screen} edges={[]}>
+      {/* Map + search card overlay */}
+      <View style={styles.mapSection}>
+        <MapView
+          ref={mapRef}
+          style={styles.map}
+          initialRegion={mapRegion}
+          showsUserLocation
+          showsMyLocationButton
+          onRegionChangeComplete={setMapRegion}
+        >
           {displayResults.map(result => {
             const latitude = parseFloat(result.latitude);
             const longitude = parseFloat(result.longitude);
@@ -109,56 +136,84 @@ export default function SearchScreen({ route }) {
             return <Marker key={result.id} coordinate={{ latitude, longitude }} title={result.name} />;
           })}
         </MapView>
+        {/* Top overlay: search card + filters row */}
+        <View style={[styles.topOverlay, { top: topInset + 12 }]}>
+          <View style={styles.searchCard}>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="What specific subject or scene would you like to capture?"
+              placeholderTextColor="#7BBFBE"
+              value={query}
+              onChangeText={setQuery}
+              multiline
+            />
+            <TouchableOpacity style={styles.searchIconButton} onPress={handleSearch}>
+              <MaterialIcons name="search" size={24} color="#B8960C" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.filtersRow}>
+            <TouchableOpacity style={styles.filterButton} onPress={() => setShowModal(true)}>
+              <Text style={styles.filterButtonText}>PREFERENCES & FILTERS</Text>
+              <MaterialIcons name="tune" size={18} color="#fff" />
+            </TouchableOpacity>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.pillsContent}
+            >
+              {selectedPreferences.map(item => (
+                <TouchableOpacity key={item} style={styles.pill} onPress={() => togglePreference(item)}>
+                  <Text style={styles.pillText}>{item}  ×</Text>
+                </TouchableOpacity>
+              ))}
+              <View style={styles.pill}>
+                <Text style={styles.pillText}>{selectedDistance}  ×</Text>
+              </View>
+              {selectedTime && (
+                <TouchableOpacity style={styles.pill} onPress={() => setSelectedTime(null)}>
+                  <Text style={styles.pillText}>{selectedTime}  ×</Text>
+                </TouchableOpacity>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+
+        <TouchableOpacity style={styles.setLocationButton} onPress={handleSetLocation}>
+          <Text style={styles.setLocationText}>SET LOCATION</Text>
+        </TouchableOpacity>
       </View>
 
-      <Text style={styles.label}>Selected preference:</Text>
-      <Text style={styles.value}>{preference}</Text>
-
-      <Text style={styles.label}>Your Location:</Text>
-      {userLocation && (
-        <Text style={styles.value}>{userLocation.latitude}, {userLocation.longitude}</Text>
-      )}
-
-      <Text style={styles.label}>Current Time:</Text>
-      <Text style={styles.value}>{currentTime}</Text>
-
-      <Text style={styles.label}>What do you want to draw?</Text>
-      <TextInput style={styles.input} placeholder="e.g. person walking dog" value={query} onChangeText={setQuery} />
-
-      <Text style={styles.label}>Max Radius (meters)</Text>
-      <TextInput style={styles.input} placeholder="e.g. 1000" value={radius} onChangeText={setRadius} keyboardType="numeric" />
-
-      <Text style={styles.label}>Override Latitude (optional)</Text>
-      <TextInput style={styles.input} placeholder="e.g. 40.7128" value={customLat} onChangeText={setCustomLat} keyboardType="numeric" />
-
-      <Text style={styles.label}>Override Longitude (optional)</Text>
-      <TextInput style={styles.input} placeholder="e.g. -74.0060" value={customLng} onChangeText={setCustomLng} keyboardType="numeric" />
-
-      <Text style={styles.label}>Override Time (optional, HH:MM)</Text>
-      <TextInput style={styles.input} placeholder="18:30" value={customTime} onChangeText={setCustomTime} />
-
-      <Button title="Search" onPress={handleSearch} />
-
-      {displayResults.length > 0 && (
-        <View style={{ marginTop: 20 }}>
-          <Text style={[styles.title, { textAlign: 'left' }]}>Results Found:</Text>
-          {displayResults.map(result => (
-            <View key={result.id} style={styles.card}>
-              {result.image_url ? (
-                <Image source={{ uri: result.image_url }} style={styles.cardImage} />
-              ) : (
-                <View style={[styles.cardImage, { backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center' }]}>
-                  <Text style={{ color: '#999' }}>No Image Available</Text>
-                </View>
-              )}
-              <View style={styles.cardContent}>
-                <Text style={styles.cardName}>{result.name || 'Unknown Location'}</Text>
-                <Text style={styles.cardDistance}>{Math.round(result.distance_meters)}m away</Text>
-              </View>
+      {/* Suggestions bottom panel */}
+      <View style={styles.suggestionsPanel}>
+        <View style={styles.dragHandle} />
+        <Text style={styles.suggestionsTitle}>Suggestions</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionCards}>
+          {displayResults.length > 0 ? displayResults.map(result => (
+            <View key={result.id} style={styles.resultCard}>
+              <Image source={{ uri: result.image_url }} style={styles.resultCardImage} />
+              <Text style={styles.resultCardName} numberOfLines={2}>{result.name}</Text>
             </View>
-          ))}
-        </View>
-      )}
-    </ScrollView>
+          )) : (
+            <>
+              <View style={[styles.resultCardPlaceholder, { backgroundColor: '#F5E6A3' }]} />
+              <View style={[styles.resultCardPlaceholder, { backgroundColor: '#7BBFBE' }]} />
+              <View style={[styles.resultCardPlaceholder, { backgroundColor: '#E8607A', opacity: 0.4 }]} />
+            </>
+          )}
+        </ScrollView>
+      </View>
+
+      <FiltersModal
+        visible={showModal}
+        onClose={() => setShowModal(false)}
+        selectedPreferences={selectedPreferences}
+        onTogglePreference={togglePreference}
+        selectedDistance={selectedDistance}
+        onSelectDistance={setSelectedDistance}
+        selectedTime={selectedTime}
+        onSelectTime={handleSelectTime}
+      />
+    </SafeAreaView>
   );
 }

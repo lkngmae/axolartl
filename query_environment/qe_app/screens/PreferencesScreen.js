@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -29,7 +29,10 @@ export default function PreferencesScreen({ navigation }) {
       preferences: selectedPreferences.map(p => p.toLowerCase()),
       initialQuery: query,
       initialRadius: miToMeters(selectedDistance),
+      initialDistanceLabel: selectedDistance,
+      initialPreferences: selectedPreferences.map(p => p.toLowerCase()),
       initialTime: selectedTime ? TIME_MAP[selectedTime] : null,
+      initialTimeLabel: selectedTime,
     });
   };
 
