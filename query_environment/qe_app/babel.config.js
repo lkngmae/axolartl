@@ -1,3 +1,12 @@
-module.exports = {
-  presets: [['@babel/preset-env', { targets: { node: 'current' } }]],
+module.exports = function (api) {
+  const isTest = api.env('test');
+
+  return {
+    presets: isTest
+      ? [
+          ['@babel/preset-env', { targets: { node: 'current' } }],
+          '@babel/preset-react',
+        ]
+      : ['babel-preset-expo'],
+  };
 };
