@@ -34,6 +34,7 @@ def derive_categories(tags: Dict[str, object]) -> List[str]:
     leisure = normalized.get('leisure')
     tourism = normalized.get('tourism')
     highway = normalized.get('highway')
+    footway = normalized.get('footway')
     man_made = normalized.get('man_made')
     landuse = normalized.get('landuse')
     bridge = normalized.get('bridge')
@@ -80,6 +81,7 @@ def derive_categories(tags: Dict[str, object]) -> List[str]:
             'cycleway', 'primary', 'path', 'tertiary', 'unclassified', 'service',
             'residential', 'steps', 'primary_link', 'secondary_link', 'track'
         }
+        or footway in {'crossing', 'sidewalk'}
         or landuse in {'residential'}
         or normalized.get('place') in {'islet'}
     ):

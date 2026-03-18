@@ -43,6 +43,8 @@ ALLOWED_KEYS = {
     'surface',
     'garden:type',
     'leisure',
+    'highway',
+    'footway',
 
     # Points of interest / content
     'tourism',
@@ -65,8 +67,8 @@ ALLOWED_KEYS = {
 
 # For some keys, only a subset of values are meaningful/descriptive.
 ALLOWED_VALUES_BY_KEY = {
-    'landuse': {'grass'},
-    'leisure': {'park', 'garden', 'dog_park'},
+    'landuse': {'grass', 'meadow', 'forest', 'recreation_ground'},
+    'leisure': {'park', 'garden', 'dog_park', 'playground', 'pitch', 'sports_centre', 'golf_course', 'nature_reserve', 'swimming_pool'},
     'tourism': {'artwork', 'viewpoint', 'picnic_site'},
     'amenity': {'fountain', 'library'},
     'man_made': {'bridge', 'pier'},

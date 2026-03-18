@@ -14,6 +14,8 @@ ALLOWED_KEYS = {
     'surface',
     'garden:type',
     'leisure',
+    'highway',
+    'footway',
     'tourism',
     'amenity',
     'historic',
@@ -29,8 +31,8 @@ ALLOWED_KEYS = {
 }
 
 ALLOWED_VALUES_BY_KEY = {
-    'landuse': {'grass'},
-    'leisure': {'park', 'garden', 'dog_park'},
+    'landuse': {'grass', 'meadow', 'forest', 'recreation_ground'},
+    'leisure': {'park', 'garden', 'dog_park', 'playground', 'pitch', 'sports_centre', 'golf_course', 'nature_reserve', 'swimming_pool'},
     'tourism': {'artwork', 'viewpoint', 'picnic_site'},
     'amenity': {'fountain', 'library'},
     'man_made': {'bridge', 'pier'},
@@ -138,7 +140,7 @@ def indoor_score_for_term(term: str) -> float:
     key, value = split_term(term)
 
     # Strong outdoor signals
-    if key in {'natural', 'water', 'wetland', 'landuse', 'leisure', 'garden:type', 'surface', 'barrier', 'bridge'}:
+    if key in {'natural', 'water', 'wetland', 'landuse', 'leisure', 'garden:type', 'surface', 'barrier', 'bridge', 'highway', 'footway'}:
         return 0.0
     if key == 'tourism' and value in {'viewpoint', 'picnic_site'}:
         return 0.0
@@ -197,4 +199,3 @@ if __name__ == '__main__':
     with open(OUTPUT_FILE, 'w') as f:
         json.dump(suitability, f, indent=2, sort_keys=True)
     print(f"Wrote {len(suitability)} terms to {OUTPUT_FILE}")
-
