@@ -13,7 +13,9 @@ app.use(express.json());
 // borrow connections from this shared pool rather than opening new ones.
 const pool = mysql.createPool({
     host: 'localhost',
-    user: 'root',
+    // user: 'root',
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
     database: 'axolartl',
     waitForConnections: true,  // queue requests when all connections are busy
     connectionLimit: 10,       // maximum number of open connections

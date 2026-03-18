@@ -1,8 +1,14 @@
 # axolartl
 
 ## Running Commands
-Run the app:
-Go to your teminal and use the following lines:
+
+Run backend:
+```
+cd axolartl/query_environment/qe_app/qe_backend
+node server.js
+```
+
+Run frontend:
 ```
 cd axolartl/query_environment/qe_app
 npx expo start
@@ -10,6 +16,6 @@ npx expo start
 
 Run tests:
 ```
-cd axolartl/query_environment/qe_app/
+cd axolartl/query_environment/qe_app
 npm test
 ```

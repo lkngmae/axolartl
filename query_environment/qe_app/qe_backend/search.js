@@ -416,14 +416,6 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
     // Borrow a connection from the pool. It is returned via release() in the
     // finally block regardless of whether the search succeeds or throws.
     const connection = await pool.getConnection();
-  // TODO: fix here
-// async function searchLocations(rawQuery, userLat, userLng, maxRadius, currentTime,
-//     selectedCategory) {
-/*     const connection = await mysql.createConnection({
-        host: 'localhost',
-        user: process.env.DB_USER,
-        database: 'axolartl'
-    }); */
 
     try {
         // Step 1: Convert the raw query string into normalised keyword tokens.
