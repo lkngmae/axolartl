@@ -24,44 +24,35 @@ export default StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     letterSpacing: 2,
-    marginBottom: 8,
-  },
-  heroHeading: {
-    color: '#F5E6A3',
-    fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginTop: 16,
-    lineHeight: 36,
+    marginTop: 12,
   },
 
-  // Search card
+  // Search card — matches SearchScreen card style
   card: {
     width: '100%',
     backgroundColor: '#fff',
-    borderRadius: 24,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 6,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#7BBFBE',
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
   },
   queryInput: {
+    flex: 1,
     fontSize: 18,
     color: '#7BBFBE',
-    minHeight: 130,
+    minHeight: 160,
     paddingTop: 0,
-    marginBottom: 20,
+    paddingRight: 8,
   },
 
-  // Filter row
-  filterRow: {
+  // Filter row + pills outside card, on teal bg
+  bottomFilters: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     gap: 8,
-    marginBottom: 12,
+    marginTop: 12,
   },
   filterButton: {
     backgroundColor: '#E8607A',
@@ -71,7 +62,7 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    flex: 1,
+    flexShrink: 0,
   },
   filterButtonText: {
     color: '#fff',
@@ -90,9 +81,6 @@ export default StyleSheet.create({
   },
 
   // Active filter pills
-  pillsRow: {
-    marginTop: 4,
-  },
   pillsContent: {
     flexDirection: 'row',
     gap: 8,
@@ -104,6 +92,7 @@ export default StyleSheet.create({
     borderRadius: 24,
     paddingVertical: 6,
     paddingHorizontal: 14,
+    backgroundColor: '#fff',
   },
   pillText: {
     color: '#E8607A',

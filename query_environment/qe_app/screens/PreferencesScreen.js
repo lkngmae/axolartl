@@ -30,7 +30,7 @@ export default function PreferencesScreen({ navigation }) {
   };
 
   const handleSelectTime = (t) => {
-    setSelectedTime(prev => prev === t ? null : t);
+    setSelectedTime(prev => (prev === t ? null : t));
   };
 
   const handleSearch = () => {
@@ -39,7 +39,10 @@ export default function PreferencesScreen({ navigation }) {
       preferences: selectedPreferences.map(p => p.toLowerCase()),
       initialQuery: query,
       initialRadius: miToMeters(selectedDistance),
+      initialDistanceLabel: selectedDistance,
+      initialPreferences: selectedPreferences.map(p => p.toLowerCase()),
       initialTime: selectedTime ? TIME_MAP[selectedTime] : null,
+      initialTimeLabel: selectedTime,
     });
   };
 
@@ -51,18 +54,17 @@ export default function PreferencesScreen({ navigation }) {
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <View style={{ flex: 1 }}>
-            {/* Hero: branding + icon + heading */}
+            {/* Hero: icon + branding */}
             <View style={styles.heroSection}>
-              <Text style={styles.brandText}>BY AXOLARTL STUDIOS</Text>
               <MaterialIcons name="search" size={130} color="#F5E6A3" />
-              <Text style={styles.heroHeading}>What scene would you like to draw?</Text>
+              <Text style={styles.brandText}>BY AXOLARTL STUDIOS</Text>
             </View>
 
-            {/* Search card */}
+            {/* Search card — matches SearchScreen style */}
             <View style={styles.card}>
               <TextInput
                 style={styles.queryInput}
-                placeholder="Find the perfect inspiration in just a few words."
+                placeholder="What specific subject or scene would you like to capture?"
                 placeholderTextColor="#7BBFBE"
                 value={query}
                 onChangeText={setQuery}
@@ -70,21 +72,21 @@ export default function PreferencesScreen({ navigation }) {
                 textAlignVertical="top"
                 blurOnSubmit={false}
               />
+              <TouchableOpacity style={styles.searchIconButton} onPress={handleSearch}>
+                <MaterialIcons name="search" size={26} color="#B8960C" />
+              </TouchableOpacity>
+            </View>
 
-              <View style={styles.filterRow}>
-                <TouchableOpacity style={styles.filterButton} onPress={() => setShowModal(true)}>
-                  <Text style={styles.filterButtonText}>PREFERENCES & FILTERS</Text>
-                  <MaterialIcons name="tune" size={18} color="#fff" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.searchIconButton} onPress={handleSearch}>
-                  <MaterialIcons name="search" size={26} color="#B8960C" />
-                </TouchableOpacity>
-              </View>
+            {/* Filter row + pills on teal background */}
+            <View style={styles.bottomFilters}>
+              <TouchableOpacity style={styles.filterButton} onPress={() => setShowModal(true)}>
+                <Text style={styles.filterButtonText}>PREFERENCES</Text>
+                <MaterialIcons name="tune" size={18} color="#fff" />
+              </TouchableOpacity>
 
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                style={styles.pillsRow}
                 contentContainerStyle={styles.pillsContent}
                 keyboardShouldPersistTaps="handled"
               >
@@ -120,3 +122,4 @@ export default function PreferencesScreen({ navigation }) {
     </SafeAreaView>
   );
 }
+
