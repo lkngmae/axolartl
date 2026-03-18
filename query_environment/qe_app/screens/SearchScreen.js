@@ -536,7 +536,7 @@ export default function SearchScreen({ route }) {
                       </TouchableOpacity>
                     ))}
                     <View style={styles.pill}>
-                      <Text style={styles.pillText}>{selectedDistance}  ×</Text>
+                      <Text style={styles.pillText}>{selectedDistance}</Text>
                     </View>
                     {selectedTime && (
                       <TouchableOpacity style={styles.pill} onPress={() => setSelectedTime(null)}>
