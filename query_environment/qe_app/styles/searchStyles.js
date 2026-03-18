@@ -98,6 +98,7 @@ export default StyleSheet.create({
     borderRadius: 24,
     paddingVertical: 6,
     paddingHorizontal: 14,
+    backgroundColor: '#fff',
   },
   pillText: {
     color: '#E8607A',

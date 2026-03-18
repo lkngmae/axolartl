@@ -154,7 +154,7 @@ export default function SearchScreen({ route }) {
 
           <View style={styles.filtersRow}>
             <TouchableOpacity style={styles.filterButton} onPress={() => setShowModal(true)}>
-              <Text style={styles.filterButtonText}>PREFERENCES & FILTERS</Text>
+              <Text style={styles.filterButtonText}>PREFERENCES</Text>
               <MaterialIcons name="tune" size={18} color="#fff" />
             </TouchableOpacity>
             <ScrollView
