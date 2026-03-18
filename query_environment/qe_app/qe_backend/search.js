@@ -1,22 +1,114 @@
 require('dotenv').config();
 const mysql = require('mysql2/promise');
-const { getCurrentWeather, classifyWeather } = require('./weather');
+const { getCurrentWeather, getHourlyForecastWeather, classifyWeather } = require('./weather');
 const {
     computeLocationIndoorScore,
     outdoorIndicatorText,
     buildWeatherWarning
 } = require('./weatherSuitability');
+const { getOpenHoursForResult, getOpenStatusForResultAtTime } = require('./placesOpenNow');
 
 const SCORE_WEIGHTS = {
-    cosine: 0.6,
+    cosine: 0.65,
+    distance: 0.20,
     category: 0.15,
-    distance: 0.25
+    personalization: 0
 };
 
 const LOG_SCORES = process.env.LOG_SCORES !== 'false';
 const LOG_KEYWORDS_MAX = Number.isFinite(Number(process.env.LOG_KEYWORDS_MAX))
     ? Number(process.env.LOG_KEYWORDS_MAX)
     : 80;
+
+// Hard cap to prevent extremely large prepared statements (which can trigger
+// MySQL "Malformed communication packet" / max_allowed_packet issues) when a
+// query contains many tokens.
+const MAX_PLAIN_TOKENS = Number.isFinite(Number(process.env.MAX_PLAIN_TOKENS))
+    ? Number(process.env.MAX_PLAIN_TOKENS)
+    : 14;
+
+const MIN_PLAIN_TOKEN_LEN = Number.isFinite(Number(process.env.MIN_PLAIN_TOKEN_LEN))
+    ? Number(process.env.MIN_PLAIN_TOKEN_LEN)
+    : 3;
+
+const MAX_PLAIN_TOKEN_LEN = Number.isFinite(Number(process.env.MAX_PLAIN_TOKEN_LEN))
+    ? Number(process.env.MAX_PLAIN_TOKEN_LEN)
+    : 40;
+
+const PERSONAL_WEIGHTS = {
+    history_multiplier: 3,
+    favorite_keyword_multiplier: 1.5,
+    favorite_category_bonus: 20,
+    distance_penalty_per_meter: 1 / 500
+};
+
+function computePersonalScore(result, personalization) {
+    if (!personalization) {
+        return {
+            score: 0,
+            breakdown: {
+                history_boost: 0,
+                favorite_keyword_boost: 0,
+                favorite_category_boost: 0,
+                distance_penalty: 0,
+                note: 'No personalization payload provided.'
+            }
+        };
+    }
+
+    const history = personalization.history || {};
+    const favoriteKeywordCounts = personalization.favorite_keyword_counts || {};
+    const favoriteCategories = Array.isArray(personalization.favorite_categories)
+        ? personalization.favorite_categories
+        : [];
+
+    const name = String(result.name || '').toLowerCase();
+    const keywordTerms = Array.isArray(result.keyword_terms) ? result.keyword_terms : [];
+    const keywordSet = new Set(keywordTerms.map(t => String(t).toLowerCase()));
+    const categories = Array.isArray(result.categories) ? result.categories : [];
+    const categorySet = new Set(categories.map(c => String(c).toLowerCase()));
+
+    let historyBoost = 0;
+    for (const [key, rawCount] of Object.entries(history)) {
+        const query = String(key || '').toLowerCase();
+        const count = Number(rawCount || 0);
+        if (!query || !Number.isFinite(count) || count <= 0) continue;
+        if (name.includes(query)) {
+            historyBoost += count * PERSONAL_WEIGHTS.history_multiplier;
+        }
+    }
+
+    let favoriteKeywordBoost = 0;
+    for (const term of keywordSet) {
+        const count = Number(favoriteKeywordCounts[term] || 0);
+        if (!Number.isFinite(count) || count <= 0) continue;
+        favoriteKeywordBoost += count * PERSONAL_WEIGHTS.favorite_keyword_multiplier;
+    }
+
+    let favoriteCategoryBoost = 0;
+    if (favoriteCategories.length > 0 && categorySet.size > 0) {
+        const matches = favoriteCategories.some(c => categorySet.has(String(c).toLowerCase()));
+        if (matches) favoriteCategoryBoost += PERSONAL_WEIGHTS.favorite_category_bonus;
+    }
+
+    const distanceMeters = Number(result.distance_meters || 0);
+    const distancePenalty = Number.isFinite(distanceMeters) && distanceMeters > 0
+        ? distanceMeters * PERSONAL_WEIGHTS.distance_penalty_per_meter
+        : 0;
+
+    const score = historyBoost + favoriteKeywordBoost + favoriteCategoryBoost - distancePenalty;
+
+    return {
+        score,
+        breakdown: {
+            history_boost: historyBoost,
+            favorite_keyword_boost: favoriteKeywordBoost,
+            favorite_category_boost: favoriteCategoryBoost,
+            distance_penalty: distancePenalty,
+            note: 'personalScore is used for final server-side re-ranking.'
+        }
+    };
+}
 
 // Words to exclude from query expansion and scoring. These carry no
 // meaningful semantic signal and would inflate match counts if included.
@@ -39,6 +131,8 @@ const SYNONYM_MAP = {
 
 function normalizeNameForMatch(name) {
     if (!name) return [];
+    const normalized = String(name).toLowerCase().trim();
+    if (normalized === 'untitled artistic spot') return [];
     return String(name)
         .toLowerCase()
         .replace(/[^\w\s]/g, ' ')
@@ -269,10 +363,14 @@ function buildExpandedTerms(tokens) {
             return;
         }
 
-        if (!STOPWORDS.has(token)) {
-            plainTokens.add(token);
-            exactTerms.add(token);
-        }
+        const parts = String(token).split('_').map(p => p.trim()).filter(Boolean);
+        const candidates = parts.length > 1 ? [token, ...parts] : [token];
+
+        candidates.forEach(t => {
+            if (!t || STOPWORDS.has(t)) return;
+            plainTokens.add(t);
+            exactTerms.add(t);
+        });
 
         // Expand any known synonyms for this token.
         const synonyms = SYNONYM_MAP[token] || [];
@@ -317,27 +415,68 @@ async function fetchMatchingKeywords(connection, exactTerms, plainTokens) {
     // For plain words, also match key:value terms where the key or value
     // equals the token, including pipe-delimited multi-value fields.
     if (plainTokens.length > 0) {
-        const clauses = [];
-        const params = [];
-        plainTokens.forEach(token => {
-            clauses.push('(term = ? OR term LIKE ? OR term LIKE ? OR term LIKE ? OR term LIKE ? OR term LIKE ?)');
-            params.push(
-                token,
-                `${token}:%`,
-                `%:${token}`,
-                `%:${token}|%`,
-                `%|${token}|%`,
-                `%|${token}`
+        const limitedTokens = plainTokens
+            .map(t => String(t || '').trim().toLowerCase())
+            .filter(t => t && t.length >= MIN_PLAIN_TOKEN_LEN && t.length <= MAX_PLAIN_TOKEN_LEN)
+            .slice(0, MAX_PLAIN_TOKENS);
+        if (plainTokens.length > limitedTokens.length) {
+            console.warn(
+                `[SEARCH] Query token count (${plainTokens.length}) exceeds MAX_PLAIN_TOKENS (${MAX_PLAIN_TOKENS}); truncating for keyword LIKE matching.`
             );
-        });
+        }
 
-        const [rows] = await connection.execute(
-            `SELECT id, term
-             FROM keywords
-             WHERE ${clauses.join(' OR ')}`,
-            params
-        );
-        rows.forEach(r => termMap.set(r.id, r));
+        const escapeLike = (value) =>
+            String(value)
+                .replace(/\\/g, '\\\\')
+                .replace(/%/g, '\\%')
+                .replace(/_/g, '\\_');
+
+        // Run small per-token queries to avoid extremely large packets/queries.
+        for (const token of limitedTokens) {
+            const esc = escapeLike(token);
+            const underscore = '\\_';
+
+            const clause = [
+                'term = ?',
+                "term LIKE ? ESCAPE '\\\\'",
+                "term LIKE ? ESCAPE '\\\\'",
+                // value underscore-segment matches (e.g. tourism:picnic_site)
+                "term LIKE ? ESCAPE '\\\\'", // %:token\_%
+                "term LIKE ? ESCAPE '\\\\'", // %:\_token\_%
+                "term LIKE ? ESCAPE '\\\\'", // %:\_token
+                // key underscore-segment matches (e.g. picnic_site:*)
+                "term LIKE ? ESCAPE '\\\\'", // token\_%:%
+                "term LIKE ? ESCAPE '\\\\'", // %\_token\_%:%
+                "term LIKE ? ESCAPE '\\\\'", // %\_token:%
+                // pipe-delimited values
+                "term LIKE ? ESCAPE '\\\\'",
+                "term LIKE ? ESCAPE '\\\\'",
+                "term LIKE ? ESCAPE '\\\\'"
+            ].join(' OR ');
+
+            const params = [
+                token,
+                `${esc}:%`,
+                `%:${esc}`,
+                `%:${esc}${underscore}%`,
+                `%:${underscore}${esc}${underscore}%`,
+                `%:${underscore}${esc}`,
+                `${esc}${underscore}%:%`,
+                `%${underscore}${esc}${underscore}%:%`,
+                `%${underscore}${esc}:%`,
+                `%:${esc}|%`,
+                `%|${esc}|%`,
+                `%|${esc}`
+            ];
+
+            const [rows] = await connection.execute(
+                `SELECT id, term
+                 FROM keywords
+                 WHERE (${clause})`,
+                params
+            );
+            rows.forEach(r => termMap.set(r.id, r));
+        }
     }
 
     return [...termMap.values()];
@@ -411,7 +550,7 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
  *                           candidate locations.
  */
 async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, currentTime,
-    selectedCategory) {
+    selectedCategory, personalization = null, preferredTimeLabel = null, weatherOverride = null, weatherClassOverride = null) {
 
     // Borrow a connection from the pool. It is returned via release() in the
     // finally block regardless of whether the search succeeds or throws.
@@ -426,7 +565,6 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
         // them to keyword row objects from the database.
         const { exactTerms, plainTokens } = buildExpandedTerms(tokens);
         const keywordRows = await fetchMatchingKeywords(connection, exactTerms, plainTokens);
-        if (keywordRows.length === 0) return [];
 
         const keywordIds = keywordRows.map(r => r.id);
 
@@ -434,16 +572,53 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             `SELECT COUNT(*) AS totalLocations FROM locations`
         );
 
-        // Get DF per keyword
+        // Add TF-IDF dimensions for query tokens (and normalized query-name tokens)
+        // that appear in location names.
+        // This allows a location's human-readable name to influence cosine similarity
+        // without requiring a DB keyword row for every possible name token.
+        const nameTokenIdByToken = {};
+        const nameIdfById = {};
+        let nextSyntheticId = -1;
+
+        const nameQueryTokens = normalizeNameForMatch(rawQuery);
+        const nameTokenCandidates = new Set([
+            ...plainTokens.map(t => String(t || '').toLowerCase().trim()),
+            ...nameQueryTokens.map(t => String(t || '').toLowerCase().trim()),
+        ]);
+
+        for (const token of nameTokenCandidates) {
+            const t = String(token || '').toLowerCase().trim();
+            if (!t || STOPWORDS.has(t)) continue;
+            try {
+                const [[{ df }]] = await connection.execute(
+                    `SELECT COUNT(*) AS df
+                     FROM locations
+                     WHERE name IS NOT NULL AND LOWER(name) LIKE ?`,
+                    [`%${t}%`]
+                );
+                const dfNum = Number(df || 0);
+                if (!Number.isFinite(dfNum) || dfNum <= 0) continue;
+                const id = String(nextSyntheticId--);
+                nameTokenIdByToken[t] = id;
+                const idf = Math.log(totalLocations / dfNum);
+                nameIdfById[id] = idf;
+            } catch {
+                // Ignore name token df failures; search remains functional.
+            }
+        }
+
+        // Get DF per keyword (if any)
         const dfPlaceholders = keywordIds.map(() => '?').join(',');
 
-        const [dfRows] = await connection.execute(
-            `SELECT keyword_id, COUNT(location_id) AS df
-             FROM location_keywords
-             WHERE keyword_id IN (${dfPlaceholders})
-             GROUP BY keyword_id`,
-            keywordIds
-        );
+        const dfRows = keywordIds.length > 0
+            ? (await connection.execute(
+                `SELECT keyword_id, COUNT(location_id) AS df
+                 FROM location_keywords
+                 WHERE keyword_id IN (${dfPlaceholders})
+                 GROUP BY keyword_id`,
+                keywordIds
+            ))[0]
+            : [];
 
         // Build a map from keyword_id to its document frequency for quick lookup.
         const dfMap = {};
@@ -462,15 +637,38 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             queryNorm += idf * idf;
         }
 
+        for (const [id, idf] of Object.entries(nameIdfById)) {
+            queryVector[id] = idf;
+            queryNorm += idf * idf;
+        }
+
         queryNorm = Math.sqrt(queryNorm);
 
-        // Candidate locations
-        const [candidateRows] = await connection.execute(
-            `SELECT DISTINCT location_id
-            FROM location_keywords
-            WHERE keyword_id IN (${dfPlaceholders})`,
-            keywordIds
-        );
+        // Candidate locations from keywords (if any).
+        const candidateRows = keywordIds.length > 0
+            ? (await connection.execute(
+                `SELECT DISTINCT location_id
+                 FROM location_keywords
+                 WHERE keyword_id IN (${dfPlaceholders})`,
+                keywordIds
+            ))[0]
+            : [];
+
+        // Candidate locations from name-token matches.
+        const nameCandidateIds = new Set();
+        const nameCandidates = Array.from(nameTokenCandidates).filter(t => t);
+        for (const token of nameCandidates) {
+            const likeToken = `%${token}%`;
+            const [rows] = await connection.execute(
+                `SELECT id
+                 FROM locations
+                 WHERE name IS NOT NULL
+                   AND LOWER(name) LIKE ?
+                   AND LOWER(name) != 'untitled artistic spot'`,
+                [likeToken]
+            );
+            rows.forEach(r => nameCandidateIds.add(r.id));
+        }
 
         // Optionally resolve the selected category name to its numeric ID.
         let categoryId = null;
@@ -486,20 +684,27 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             }
         }
 
-        const candidateIds = candidateRows.map(r => r.location_id);
+        const candidateIds = Array.from(new Set([
+            ...candidateRows.map(r => r.location_id),
+            ...nameCandidateIds
+        ]));
         if (candidateIds.length === 0) return [];
 
-        let currentWeather = null;
-        let weatherClass = 'great_outdoor';
+        let currentWeather = weatherOverride || null;
+        let weatherClass = weatherClassOverride || 'great_outdoor';
 
-        try {
-            currentWeather = await getCurrentWeather(userLat, userLng);
-            console.log(currentWeather);
-            weatherClass = classifyWeather(currentWeather);
-            console.log(weatherClass);
-        } catch (error) {
-            // Fallback keeps ranking functional if weather API fails.
-            console.warn(error.message);
+        if (!currentWeather || !weatherClassOverride) {
+            try {
+                if (preferredTimeLabel) {
+                    currentWeather = await getHourlyForecastWeather(userLat, userLng, currentTime);
+                } else {
+                    currentWeather = await getCurrentWeather(userLat, userLng);
+                }
+                weatherClass = classifyWeather(currentWeather);
+            } catch (error) {
+                // Fallback keeps ranking functional if weather API fails.
+                console.warn(error.message);
+            }
         }
 
         let categoryMatches = new Set();
@@ -538,13 +743,15 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
         // Get location-keyword pairs
         const locPlaceholders = candidateIds.map(() => '?').join(',');
 
-        const [locationKeywordRows] = await connection.execute(
-            `SELECT location_id, keyword_id
-             FROM location_keywords
-             WHERE location_id IN (${locPlaceholders})
-             AND keyword_id IN (${dfPlaceholders})`,
-            [...candidateIds, ...keywordIds]
-        );
+        const locationKeywordRows = keywordIds.length > 0
+            ? (await connection.execute(
+                `SELECT location_id, keyword_id
+                 FROM location_keywords
+                 WHERE location_id IN (${locPlaceholders})
+                 AND keyword_id IN (${dfPlaceholders})`,
+                [...candidateIds, ...keywordIds]
+            ))[0]
+            : [];
 
         const [allLocationKeywordRows] = await connection.execute(
             `SELECT location_id, keyword_id
@@ -620,6 +827,21 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             locationMap[l.id] = l;
         });
 
+        // Name tokens per location (for cosine similarity + keyword display).
+        const locationNameTokens = {};
+        for (const l of locationRows) {
+            locationNameTokens[l.id] = normalizeNameForMatch(l.name);
+            const vec = locationVectors[l.id];
+            if (vec && locationNameTokens[l.id].length > 0) {
+                for (const token of locationNameTokens[l.id]) {
+                    const id = nameTokenIdByToken[token];
+                    if (!id) continue;
+                    const idf = nameIdfById[id];
+                    if (typeof idf === 'number') vec[id] = idf;
+                }
+            }
+        }
+
         // Compute cosine + distance scoring
         const results = [];
 
@@ -679,17 +901,50 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
                 : 0;
 
             // Weighted final score combining all three signals.
-            const finalScore =
+            const baseScore =
                 SCORE_WEIGHTS.cosine * cosine +
                 SCORE_WEIGHTS.category * categoryScore +
                 SCORE_WEIGHTS.distance * distanceScore;
 
             const indoorScore = computeLocationIndoorScore(locationKeywordTerms[locId]);
             const warning = buildWeatherWarning(weatherClass, indoorScore);
+            const outsideWeatherIndicator =
+                indoorScore <= 0.33
+                    ? (
+                        weatherClass === 'rainy'
+                            ? { type: 'rainy', label: 'Rainy Outside' }
+                            : (weatherClass === 'cold'
+                                ? { type: 'cold', label: 'Cold Outside' }
+                                : ((weatherClass === 'hot' || weatherClass === 'extreme')
+                                    ? { type: 'hot', label: 'Hot Outside' }
+                                    : null))
+                    )
+                    : null;
+
+            const rawKeywordTerms = locationKeywordTerms[locId] || [];
+            const nameTerms = locationNameTokens[locId] || [];
+            const allTerms = Array.from(new Set([...rawKeywordTerms, ...nameTerms]));
+
+            const matchedTermSet = new Set();
+            // Keyword-table terms used in the cosine match.
+            for (const row of keywordRows) {
+                const termId = String(row.id);
+                if (vector && vector[termId]) matchedTermSet.add(row.term);
+            }
+            // Name-token terms used in the cosine match.
+            for (const t of nameTerms) {
+                const id = nameTokenIdByToken[t];
+                if (id && vector && vector[id]) matchedTermSet.add(t);
+            }
+
+            const keywordTermsMarked = allTerms.map(t => (matchedTermSet.has(t) ? `*${t}` : t));
+            const matchedTerms = Array.from(matchedTermSet);
 
             results.push({
                 ...location,
-                keyword_terms: locationKeywordTerms[locId] || [],
+                keyword_terms: allTerms,
+                keyword_terms_marked: keywordTermsMarked,
+                matched_terms: matchedTerms,
                 categories: locationCategories[locId] || [],
                 cosine_score: cosine,
                 category_score: categoryScore,
@@ -698,25 +953,31 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
                 indoor_score: indoorScore,
                 outdoor_indicator: outdoorIndicatorText(indoorScore),
                 weather_warning: warning,
+                outside_weather_indicator: outsideWeatherIndicator,
                 distance_meters: distance,
                 distance_score: distanceScore,
                 score_weights: SCORE_WEIGHTS,
                 score_components: {
                     cosine,
                     category: categoryScore,
-                    distance: distanceScore
+                    distance: distanceScore,
+                    personalization: 0
                 },
                 score_contributions: {
                     cosine: SCORE_WEIGHTS.cosine * cosine,
                     category: SCORE_WEIGHTS.category * categoryScore,
-                    distance: SCORE_WEIGHTS.distance * distanceScore
+                    distance: SCORE_WEIGHTS.distance * distanceScore,
+                    personalization: 0
                 },
-                final_score: finalScore
+                base_score: baseScore,
+                final_score: baseScore
             });
         }
 
-        // Return results ranked from most to least relevant.
+        // Ranking is purely based on cosine/distance/category. Favorites are
+        // surfaced on the client by re-ordering the already-top results.
         results.sort((a, b) => b.final_score - a.final_score);
+
         const topResults = results.slice(0, 10);
         const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
         const now = Date.now();
@@ -752,25 +1013,94 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
                 }
             }
 
-        if (LOG_SCORES) {
-            const weightsPct = {
-                cosine_pct: Math.round(SCORE_WEIGHTS.cosine * 100),
-                category_pct: Math.round(SCORE_WEIGHTS.category * 100),
-                distance_pct: Math.round(SCORE_WEIGHTS.distance * 100)
-            };
-            console.log('=== SCORE WEIGHTS ===', weightsPct);
+        // Enrich the displayed results with Places open-now status for indoor-ish spots.
+        const displayed = results
+            .filter(r => r.image_url && !String(r.image_url).includes('via.placeholder.com'))
+            .slice(0, 10);
+
+        const timeStr = String(currentTime || '');
+        const hour = Number(timeStr.split(':')[0]);
+        const minute = Number(timeStr.split(':')[1] || 0);
+        const minutesOfDay = (Number.isFinite(hour) ? hour : 12) * 60 + (Number.isFinite(minute) ? minute : 0);
+
+        let placesFailures = 0;
+        let placesChecked = 0;
+        let placesSkippedOutdoor = 0;
+        for (const r of displayed) {
+            if ((r.indoor_score ?? 0) < 0.5) {
+                // Don't attempt business-hours checks for outdoor locations.
+                r.open_now = null;
+                r.open_now_source = 'skipped_outdoor';
+                placesSkippedOutdoor += 1;
+                continue;
+            }
+            placesChecked += 1;
+            let info = null;
+            if (preferredTimeLabel) {
+                info = await getOpenStatusForResultAtTime(r, currentTime);
+                if (info) {
+                    r.open_now = info.open;
+                    r.open_now_source = info.source;
+                }
+            } else {
+                const hours = await getOpenHoursForResult(r);
+                if (hours && typeof hours.openNow === 'boolean') {
+                    r.open_now = hours.openNow;
+                    r.open_now_source = `${hours.source}_current`;
+                } else {
+                    info = null;
+                }
+            }
+
+            if (!preferredTimeLabel && r.open_now_source) {
+                // ok
+            } else if (preferredTimeLabel && r.open_now_source) {
+                // ok
+            } else {
+                placesFailures += 1;
+                console.warn(`[PLACES] Opening-hours unknown for "${r.name}" (id=${r.id}) preferredTime=${preferredTimeLabel ? currentTime : 'none'}; using heuristic.`);
+                // Fallback heuristic when Places doesn't return opening hours:
+                // - indoor_score >= 1.0: assume typical business hours 9am–6pm
+                // - indoor_score >= 0.5: assume 24/7 (parks/museums/etc are mixed; keep permissive)
+                if ((r.indoor_score ?? 0.5) >= 1) {
+                    const open = 9 * 60;
+                    const close = 18 * 60;
+                    r.open_now = minutesOfDay >= open && minutesOfDay <= close;
+                    r.open_now_source = 'estimated_9_18';
+                } else {
+                    r.open_now = true;
+                    r.open_now_source = 'estimated_24_7';
+                }
+            }
+        }
+
+        console.log(`[PLACES] Hours summary: displayed=${displayed.length} checked=${placesChecked} skipped_outdoor=${placesSkippedOutdoor} heuristic_used=${placesFailures}`);
+
+            if (LOG_SCORES) {
+                const weightsPct = {
+                    cosine_pct: Math.round(SCORE_WEIGHTS.cosine * 100),
+                    category_pct: Math.round(SCORE_WEIGHTS.category * 100),
+                    distance_pct: Math.round(SCORE_WEIGHTS.distance * 100),
+                    personalization_pct: Math.round(SCORE_WEIGHTS.personalization * 100)
+                };
+                console.log('=== SCORE WEIGHTS ===', weightsPct);
+            console.log('=== RANK MODE ===', 'default');
 
             results.slice(0, 10).forEach((r, idx) => {
                 console.log(`[${idx + 1}] ${r.name}`, {
                     overall_score: r.final_score,
+                    base_score: r.base_score,
                     cosine_score: r.cosine_score,
                     distance_meters: r.distance_meters,
                     distance_score: r.distance_score,
                     category_score: r.category_score,
                     categories: r.categories,
                     keyword_terms_count: Array.isArray(r.keyword_terms) ? r.keyword_terms.length : 0,
-                    keyword_terms: Array.isArray(r.keyword_terms)
-                        ? r.keyword_terms.slice(0, LOG_KEYWORDS_MAX)
+                    keyword_terms: Array.isArray(r.keyword_terms_marked)
+                        ? r.keyword_terms_marked.slice(0, LOG_KEYWORDS_MAX)
+                        : [],
+                    matched_terms: Array.isArray(r.matched_terms)
+                        ? r.matched_terms.slice(0, LOG_KEYWORDS_MAX)
                         : [],
                     keyword_terms_truncated: Array.isArray(r.keyword_terms)
                         ? r.keyword_terms.length > LOG_KEYWORDS_MAX

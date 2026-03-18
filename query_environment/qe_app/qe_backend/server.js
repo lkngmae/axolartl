@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2/promise');
 const searchLocations = require('./search');
+const { getCurrentWeather, getHourlyForecastWeather, classifyWeather } = require('./weather');
 
 const app = express();
 
@@ -23,14 +24,17 @@ const pool = mysql.createPool({
 });
 
 app.post('/search', async (req, res) => {
-  const {
-    query,
-    userLat,
-    userLng,
-    maxRadius,
-    currentTime,
-    selectedCategory
-  } = req.body;
+	  const {
+	    query,
+	    userLat,
+	    userLng,
+	    maxRadius,
+	    currentTime,
+	    selectedCategory,
+	    preferredTimeLabel,
+	    weather: weatherOverride,
+	    weather_class: weatherClassOverride
+	  } = req.body;
 
   const results = await searchLocations(
     pool, // used so that the server can recycle connections
@@ -39,20 +43,46 @@ app.post('/search', async (req, res) => {
     userLng,
     maxRadius,
     currentTime,
-    selectedCategory
-  );
+	    selectedCategory,
+	    null,
+	    preferredTimeLabel,
+	    weatherOverride,
+	    weatherClassOverride
+	  );
 
   // Keep weather data accessible even if the user scrolls, and even if no
   // results match. The frontend expects an object with { weather, weather_class, results }.
   const weather = results?.[0]?.weather ?? null;
   const weatherClass = results?.[0]?.weather_class ?? 'great_outdoor';
-  const scoreWeights = results?.[0]?.score_weights ?? { cosine: 0.6, category: 0.15, distance: 0.25 };
+  const scoreWeights = results?.[0]?.score_weights ?? { cosine: 0.65, distance: 0.2, category: 0.15, personalization: 0 };
   res.json({
     weather,
     weather_class: weatherClass,
     score_weights: scoreWeights,
+    rank_mode: 'default',
     results
   });
+});
+
+app.post('/weather', async (req, res) => {
+  const { userLat, userLng, currentTime, preferredTimeLabel } = req.body || {};
+  try {
+    const lat = Number(userLat);
+    const lng = Number(userLng);
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return res.status(400).json({ error: 'Invalid userLat/userLng.' });
+    }
+
+    const weather = preferredTimeLabel
+      ? await getHourlyForecastWeather(lat, lng, currentTime)
+      : await getCurrentWeather(lat, lng);
+    const weatherClass = classifyWeather(weather);
+
+    return res.json({ weather, weather_class: weatherClass });
+  } catch (err) {
+    console.warn('[WEATHER] /weather failed:', err?.message || err);
+    return res.status(500).json({ error: 'Weather lookup failed.' });
+  }
 });
 
 

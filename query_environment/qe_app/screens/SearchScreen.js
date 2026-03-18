@@ -6,10 +6,14 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
+  Animated,
+  PanResponder,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker } from 'react-native-maps';
@@ -19,12 +23,14 @@ import FiltersModal from '../components/FiltersModal';
 import { miToMeters, TIME_MAP } from '../constants';
 import styles from '../styles/searchStyles';
 import {
-  personalizeResults,
   saveSearchToHistory,
-  toggleFavorite
+  toggleFavorite,
+  getFavorites
 } from '../personal_model';
 
 const FALLBACK_LOCATION = { latitude: 33.6437, longitude: -117.8391 };
+const METERS_PER_MILE = 1609.344;
+const API_BASE = 'http://your-ip:3000';
 
 export default function SearchScreen({ route }) {
   const { top: topInset } = useSafeAreaInsets();
@@ -48,6 +54,8 @@ export default function SearchScreen({ route }) {
   const [currentWeather, setCurrentWeather] = useState(null);
   const [weatherClass, setWeatherClass] = useState('great_outdoor');
   const [scoreWeights, setScoreWeights] = useState(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [resultsLoading, setResultsLoading] = useState(false);
 
   const [userLocation, setUserLocation] = useState(null);
   const [currentTime, setCurrentTime] = useState('');
@@ -59,6 +67,65 @@ export default function SearchScreen({ route }) {
 
   const [customLocation, setCustomLocation] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [favoriteIds, setFavoriteIds] = useState([]);
+  const [favorites, setFavorites] = useState([]);
+  const [selectedResultId, setSelectedResultId] = useState(null);
+  const [activeTab, setActiveTab] = useState('suggestions'); // 'suggestions' | 'favorites'
+  const [hasSearched, setHasSearched] = useState(false);
+  const [lastAppliedFilters, setLastAppliedFilters] = useState({
+    category: (preference || initialPreferences[0] || 'urban').toLowerCase(),
+    distance: initialDistanceLabel,
+    time: initialTimeLabel,
+  });
+  const searchGlow = useRef(new Animated.Value(0)).current;
+  const searchGlowLoopRef = useRef(null);
+
+  // Bottom sheet: 0 = collapsed, negative = expanded upward.
+  const screenHeight = Dimensions.get('window').height;
+  const expandedTranslateY = -Math.min(420, Math.max(240, Math.round(screenHeight * 0.45)));
+  const sheetTranslateY = useRef(new Animated.Value(0)).current;
+  const sheetOffsetRef = useRef(0);
+  const sheetStartRef = useRef(0);
+
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponderCapture: () => true,
+      onMoveShouldSetPanResponder: (_, gesture) => {
+        const { dx, dy } = gesture;
+        return Math.abs(dy) > 6 && Math.abs(dy) > Math.abs(dx);
+      },
+      onPanResponderGrant: () => {
+        sheetStartRef.current = sheetOffsetRef.current;
+      },
+      onPanResponderMove: (_, gesture) => {
+        const next = clamp(
+          sheetStartRef.current + gesture.dy,
+          expandedTranslateY,
+          0
+        );
+        sheetTranslateY.setValue(next);
+      },
+      onPanResponderRelease: (_, gesture) => {
+        const current = clamp(
+          sheetStartRef.current + gesture.dy,
+          expandedTranslateY,
+          0
+        );
+        const shouldExpand = current < expandedTranslateY / 2;
+        const target = shouldExpand ? expandedTranslateY : 0;
+        sheetOffsetRef.current = target;
+        Animated.spring(sheetTranslateY, {
+          toValue: target,
+          useNativeDriver: true,
+          tension: 120,
+          friction: 18,
+        }).start();
+      },
+    })
+  ).current;
 
   useEffect(() => {
     const initializeLocation = async () => {
@@ -74,11 +141,107 @@ export default function SearchScreen({ route }) {
       mapRef.current?.animateToRegion(region, 400);
 
       const now = new Date();
-      setCurrentTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }));
+      const t = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+      setCurrentTime(t);
     };
 
     initializeLocation();
   }, []);
+
+  const getEffectiveTime = () => {
+    return selectedTime ? TIME_MAP[selectedTime] : (initialTime ?? currentTime);
+  };
+
+  const fetchWeather = async (overrideLocation = null) => {
+    const loc = overrideLocation || customLocation || userLocation;
+    if (!loc) return;
+    const effectiveTime = getEffectiveTime();
+
+    setWeatherLoading(true);
+    try {
+      const resp = await fetch(`${API_BASE}/weather`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userLat: loc.latitude,
+          userLng: loc.longitude,
+          currentTime: effectiveTime,
+          preferredTimeLabel: selectedTime,
+        }),
+      });
+      const payload = await resp.json();
+      const w = payload.weather ?? null;
+      const wc = payload.weather_class ?? 'great_outdoor';
+      setCurrentWeather(w);
+      setWeatherClass(wc);
+      return { weather: w, weather_class: wc };
+    } catch (err) {
+      console.error('Weather error:', err);
+      setCurrentWeather(null);
+      setWeatherClass('great_outdoor');
+      return { weather: null, weather_class: 'great_outdoor' };
+    } finally {
+      setWeatherLoading(false);
+    }
+  };
+
+  // Query weather once on entry (when location/time are ready), and whenever
+  // the preferred time selection changes.
+  useEffect(() => {
+    if (!userLocation || !currentTime) return;
+    fetchWeather();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLocation, currentTime]);
+
+  useEffect(() => {
+    if (!userLocation || !currentTime) return;
+    fetchWeather();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedTime]);
+
+  useEffect(() => {
+    const loadFavorites = async () => {
+      try {
+        const favs = await getFavorites();
+        setFavoriteIds(favs.map(f => f.id).filter(Boolean));
+        setFavorites(Array.isArray(favs) ? favs : []);
+      } catch {
+        setFavoriteIds([]);
+        setFavorites([]);
+      }
+    };
+    loadFavorites();
+  }, []);
+
+  const stopSearchGlow = () => {
+    if (searchGlowLoopRef.current) {
+      searchGlowLoopRef.current.stop();
+      searchGlowLoopRef.current = null;
+    }
+    // Ensure the icon immediately returns to the non-glow state.
+    searchGlow.setValue(0);
+  };
+
+  const startSearchGlow = () => {
+    stopSearchGlow();
+    searchGlow.setValue(0);
+    searchGlowLoopRef.current = Animated.loop(
+      Animated.sequence([
+        Animated.timing(searchGlow, { toValue: 1, duration: 600, useNativeDriver: true }),
+        Animated.timing(searchGlow, { toValue: 0, duration: 600, useNativeDriver: true }),
+      ]),
+      { resetBeforeIteration: true }
+    );
+    searchGlowLoopRef.current.start();
+  };
+
+  useEffect(() => {
+    // Keep the search icon glowing until the user presses search.
+    // Restart the glow any time the query is modified.
+    startSearchGlow();
+    return () => stopSearchGlow();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
 
   const togglePreference = (item) => {
     setSelectedPreferences(prev =>
@@ -88,19 +251,33 @@ export default function SearchScreen({ route }) {
 
   const handleSelectTime = (t) => setSelectedTime(prev => (prev === t ? null : t));
 
+  const getSelectedCategory = () => {
+    return (selectedPreferences[0] || preference || 'urban').toLowerCase();
+  };
+
   const handleSetLocation = () => {
-    setCustomLocation({ latitude: mapRegion.latitude, longitude: mapRegion.longitude });
+    const next = { latitude: mapRegion.latitude, longitude: mapRegion.longitude };
+    setCustomLocation(next);
+    fetchWeather(next);
   };
 
   const handleSearch = async () => {
     await saveSearchToHistory(query);
+    stopSearchGlow();
+    setHasSearched(true);
     const loc = customLocation || userLocation;
     if (!loc) return;
 
     const finalTime = selectedTime ? TIME_MAP[selectedTime] : (initialTime ?? currentTime);
+    setResultsLoading(true);
+    setSelectedResultId(null);
 
     try {
-      const response = await fetch('http://ip:3000/search', {
+      // Refresh weather at query time as well and pass it to the backend so
+      // per-result outside indicators match what the user sees.
+      const wx = await fetchWeather(loc);
+
+      const response = await fetch(`${API_BASE}/search`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -109,7 +286,10 @@ export default function SearchScreen({ route }) {
           userLng: loc.longitude,
           maxRadius: parseFloat(miToMeters(selectedDistance)),
           currentTime: finalTime,
-          selectedCategory: preference,
+          selectedCategory: getSelectedCategory(),
+          preferredTimeLabel: selectedTime,
+          weather: wx?.weather ?? currentWeather,
+          weather_class: wx?.weather_class ?? weatherClass,
         }),
       });
 
@@ -123,10 +303,19 @@ export default function SearchScreen({ route }) {
       setWeatherClass(wClass);
       setScoreWeights(weights);
 
-      const rankedData = await personalizeResults(data);
-      setResults(rankedData);
+      setResults(data);
+      setSelectedResultId(null);
+      setLastAppliedFilters({
+        category: getSelectedCategory(),
+        distance: selectedDistance,
+        time: selectedTime,
+      });
 
-      const coordinates = rankedData
+      const imageRanked = data
+        .filter(r => r.image_url && !String(r.image_url).includes('via.placeholder.com'))
+        .slice(0, 10);
+
+      const coordinates = imageRanked
         .slice(0, 10)
         .map(r => ({ latitude: parseFloat(r.latitude), longitude: parseFloat(r.longitude) }))
         .filter(c => !Number.isNaN(c.latitude) && !Number.isNaN(c.longitude));
@@ -144,10 +333,107 @@ export default function SearchScreen({ route }) {
       }
     } catch (error) {
       console.error('Search error:', error);
+      startSearchGlow();
+    } finally {
+      setResultsLoading(false);
     }
   };
 
-  const displayResults = results.slice(0, 10);
+  const imageResults = results.filter(
+    r => r.image_url && !String(r.image_url).includes('via.placeholder.com')
+  );
+  const isFavorited = (id) => favoriteIds.includes(id);
+
+  const topTen = imageResults.slice(0, 10);
+  const displayResults = [
+    ...topTen.filter(r => isFavorited(r.id)),
+    ...topTen.filter(r => !isFavorited(r.id)),
+  ];
+
+  const favoriteImageResults = (favorites || []).filter(
+    r => r && r.image_url && !String(r.image_url).includes('via.placeholder.com')
+  );
+  const displayFavorites = favoriteImageResults.slice(0, 10);
+
+  const focusOnResult = (result) => {
+    const latitude = parseFloat(result.latitude);
+    const longitude = parseFloat(result.longitude);
+    if (Number.isNaN(latitude) || Number.isNaN(longitude)) return;
+    const region = { latitude, longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 };
+    setMapRegion(prev => ({ ...prev, ...region }));
+    mapRef.current?.animateToRegion(region, 450);
+  };
+
+  const handleSelectResult = (result) => {
+    setSelectedResultId(prev => (prev === result.id ? null : result.id));
+    focusOnResult(result);
+  };
+
+  const handleToggleFavorite = async (result) => {
+    const favs = await toggleFavorite(result);
+    setFavoriteIds(favs.map(f => f.id).filter(Boolean));
+    setFavorites(Array.isArray(favs) ? favs : []);
+  };
+
+  const handleCloseFilters = () => {
+    setShowModal(false);
+    if (!hasSearched) return;
+
+    const currentCategory = getSelectedCategory();
+    const changed =
+      currentCategory !== lastAppliedFilters.category ||
+      selectedDistance !== lastAppliedFilters.distance ||
+      selectedTime !== lastAppliedFilters.time;
+
+    if (changed) {
+      handleSearch();
+    }
+  };
+
+  const renderStatusBadge = (result) => {
+    const source = result?.open_now_source;
+    const open = source === 'skipped_outdoor'
+      ? true
+      : (typeof result?.open_now === 'boolean' ? result.open_now : null);
+    if (open == null) return null;
+
+    const label = open ? 'Open' : 'Closed';
+    const badgeStyle = open ? styles.statusOpen : styles.statusClosed;
+    return (
+      <View style={[styles.statusBadge, badgeStyle]}>
+        <Text style={styles.statusBadgeText}>{label}</Text>
+      </View>
+    );
+  };
+
+  const renderOutsideWeatherBadge = (result) => {
+    const indicator = result?.outside_weather_indicator;
+    if (!indicator || !indicator.type) return null;
+
+    const badgeStyle = indicator.type === 'rainy'
+      ? styles.outsideRainy
+      : (indicator.type === 'cold'
+        ? styles.outsideCold
+        : styles.outsideHot);
+
+    return (
+      <View style={[styles.outsideBadge, badgeStyle]}>
+        <Text style={styles.outsideBadgeText}>{indicator.label || 'Outside'}</Text>
+      </View>
+    );
+  };
+
+  const renderBadgesRow = (result) => {
+    const status = renderStatusBadge(result);
+    const outside = renderOutsideWeatherBadge(result);
+    if (!status && !outside) return null;
+    return (
+      <View style={styles.badgesRow}>
+        {status}
+        {outside}
+      </View>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.screen} edges={[]}>
@@ -155,9 +441,9 @@ export default function SearchScreen({ route }) {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.screen}
       >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View style={styles.screen}>
-            {/* Map + search card overlay */}
+        <View style={styles.screen}>
+          {/* Map + search card overlay (tap map area to dismiss keyboard) */}
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
             <View style={styles.mapSection}>
               <MapView
                 ref={mapRef}
@@ -171,7 +457,17 @@ export default function SearchScreen({ route }) {
                   const latitude = parseFloat(result.latitude);
                   const longitude = parseFloat(result.longitude);
                   if (Number.isNaN(latitude) || Number.isNaN(longitude)) return null;
-                  return <Marker key={result.id} coordinate={{ latitude, longitude }} title={result.name} />;
+                  const selected = selectedResultId === result.id;
+                  return (
+                    <Marker
+                      key={result.id}
+                      coordinate={{ latitude, longitude }}
+                      title={result.name}
+                      onPress={() => handleSelectResult(result)}
+                    >
+                      <View style={[styles.markerDot, selected && styles.markerDotSelected]} />
+                    </Marker>
+                  );
                 })}
               </MapView>
 
@@ -179,7 +475,12 @@ export default function SearchScreen({ route }) {
               <View style={[styles.topOverlay, { top: topInset + 12 }]}>
                 <View style={styles.weatherBanner}>
                   <Text style={styles.weatherTitle}>Current weather</Text>
-                  {currentWeather ? (
+                  {weatherLoading ? (
+                    <View style={styles.weatherLoadingRow}>
+                      <ActivityIndicator size="small" color="#333" />
+                      <Text style={styles.weatherText}>Loading…</Text>
+                    </View>
+                  ) : currentWeather ? (
                     <Text style={styles.weatherText}>
                       {currentWeather.condition || 'Unknown'} · {Math.round(currentWeather.temperature ?? 0)}°F · precip {(Math.round((currentWeather.precipitationProbability ?? 0) * 100))}% · UV {currentWeather.uvIndex ?? '—'} · {weatherClass}
                     </Text>
@@ -197,9 +498,25 @@ export default function SearchScreen({ route }) {
                     onChangeText={setQuery}
                     multiline
                   />
-                  <TouchableOpacity style={styles.searchIconButton} onPress={handleSearch}>
-                    <MaterialIcons name="search" size={24} color="#B8960C" />
-                  </TouchableOpacity>
+                  <View style={styles.searchIconWrap}>
+                    <Animated.View
+                      pointerEvents="none"
+                      style={[
+                        styles.searchIconGlow,
+                        {
+                          opacity: searchGlow.interpolate({ inputRange: [0, 1], outputRange: [0, 0.75] }),
+                          transform: [{ scale: searchGlow.interpolate({ inputRange: [0, 1], outputRange: [1, 1.22] }) }],
+                        },
+                      ]}
+                    />
+                    <TouchableOpacity style={styles.searchIconButton} onPress={handleSearch}>
+                      {resultsLoading ? (
+                        <ActivityIndicator size="small" color="#B8960C" />
+                      ) : (
+                        <MaterialIcons name="search" size={24} color="#B8960C" />
+                      )}
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
                 <View style={styles.filtersRow}>
@@ -230,69 +547,201 @@ export default function SearchScreen({ route }) {
                 </View>
               </View>
 
-              <TouchableOpacity style={styles.setLocationButton} onPress={handleSetLocation}>
-                <Text style={styles.setLocationText}>SET LOCATION</Text>
+                <TouchableOpacity style={styles.setLocationButton} onPress={handleSetLocation}>
+                  <Text style={styles.setLocationText}>SET LOCATION</Text>
+                </TouchableOpacity>
+            </View>
+          </TouchableWithoutFeedback>
+
+          {/* Suggestions bottom sheet */}
+          <Animated.View
+            style={[
+              styles.suggestionsPanel,
+              { transform: [{ translateY: sheetTranslateY }] },
+            ]}
+          >
+            <View style={styles.dragHandleHitArea} {...panResponder.panHandlers}>
+              <View style={styles.dragHandle} />
+            </View>
+            <View style={styles.tabsRow}>
+              <TouchableOpacity
+                style={[styles.tabButton, activeTab === 'suggestions' && styles.tabButtonActive]}
+                onPress={() => setActiveTab('suggestions')}
+              >
+                <Text style={[styles.tabText, activeTab === 'suggestions' && styles.tabTextActive]}>Suggestions</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.tabButton, activeTab === 'favorites' && styles.tabButtonActive]}
+                onPress={() => setActiveTab('favorites')}
+              >
+                <Text style={[styles.tabText, activeTab === 'favorites' && styles.tabTextActive]}>Favorites</Text>
               </TouchableOpacity>
             </View>
 
-            {/* Suggestions bottom panel */}
-            <View style={styles.suggestionsPanel}>
-              <View style={styles.dragHandle} />
-              <Text style={styles.suggestionsTitle}>Suggestions</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionCards}>
-                {displayResults.length > 0 ? displayResults.map(result => (
-                  <View key={result.id} style={styles.resultCard}>
-                    {result.image_url ? (
-                      <Image source={{ uri: result.image_url }} style={styles.resultCardImage} />
-                    ) : (
-                      <View style={[styles.resultCardImage, { backgroundColor: '#eee', justifyContent: 'center', alignItems: 'center' }]}>
-                        <Text style={{ color: '#999' }}>No Image</Text>
-                      </View>
-                    )}
-                    <Text style={styles.resultCardName} numberOfLines={2}>{result.name}</Text>
-                    {typeof result.distance_meters === 'number' ? (
-                      <Text style={styles.resultCardMeta}>{Math.round(result.distance_meters)}m</Text>
-                    ) : null}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.suggestionCards}
+              keyboardShouldPersistTaps="handled"
+            >
+              {activeTab === 'suggestions' ? (
+                resultsLoading ? (
+                  <View style={styles.suggestionsLoading}>
+                    <ActivityIndicator size="small" color="#333" />
+                    <Text style={styles.suggestionsLoadingText}>Finding suggestions…</Text>
                   </View>
-                )) : (
-                  <>
-                    <View style={[styles.resultCardPlaceholder, { backgroundColor: '#F5E6A3' }]} />
-                    <View style={[styles.resultCardPlaceholder, { backgroundColor: '#7BBFBE' }]} />
-                    <View style={[styles.resultCardPlaceholder, { backgroundColor: '#E8607A', opacity: 0.4 }]} />
-                  </>
-                )}
-              </ScrollView>
+                ) : !hasSearched ? (
+                  <View style={styles.suggestionsEmpty}>
+                    <Text style={styles.suggestionsEmptyText}>Click on the yellow search button when ready.</Text>
+                  </View>
+                ) : displayResults.length > 0 ? (
+                  displayResults.map(result => (
+                    <View key={result.id} style={styles.resultCard}>
+                      {selectedResultId === result.id ? (
+                        <View>
+                          <TouchableOpacity onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
+                            <Text style={styles.resultCardName} numberOfLines={2}>{result.name}</Text>
+                            <Text style={styles.resultCardMeta}>Tap to close</Text>
+                          </TouchableOpacity>
+                        <ScrollView
+                          style={styles.resultDetails}
+                          contentContainerStyle={styles.resultDetailsContent}
+                          showsVerticalScrollIndicator
+                          persistentScrollbar
+                          keyboardShouldPersistTaps="handled"
+                          nestedScrollEnabled
+                          directionalLockEnabled
+                        >
+                          <Text style={styles.resultDetailText}>{`Lat/Lng: ${result.latitude}, ${result.longitude}`}</Text>
+                          <Text style={styles.resultDetailText}>{`Distance: ${((Number(result.distance_meters ?? 0) / METERS_PER_MILE) || 0).toFixed(2)} mi`}</Text>
+                            <Text style={styles.resultDetailText}>
+                              {`Open status: ${
+                                result.open_now_source === 'skipped_outdoor'
+                                  ? 'Outside (not checked)'
+                                  : (result.open_now == null ? 'Unknown' : (result.open_now ? 'Open' : 'Closed'))
+                              }`}
+                            </Text>
+                            {result.open_now_source ? (
+                              <Text style={styles.resultDetailText}>{`Open source: ${result.open_now_source}`}</Text>
+                            ) : null}
+                            <Text style={styles.resultDetailText}>{`Categories: ${(result.categories || []).join(', ')}`}</Text>
+                            <Text style={styles.resultDetailText}>
+                              {`Keywords (${(result.keyword_terms || []).length}): ${((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}`}
+                            </Text>
+                            {result.weather_warning ? (
+                              <Text style={styles.warningTextSmall}>{result.weather_warning}</Text>
+                            ) : null}
+                          </ScrollView>
+                        </View>
+                      ) : (
+                        <TouchableOpacity onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
+                          <>
+                            <Image source={{ uri: result.image_url }} style={styles.resultCardImage} />
+                            <Text style={styles.resultCardName} numberOfLines={2}>{result.name}</Text>
+                            {typeof result.distance_meters === 'number' ? (
+                              <Text style={styles.resultCardMeta}>{(result.distance_meters / METERS_PER_MILE).toFixed(2)} mi</Text>
+                            ) : null}
+                            {renderBadgesRow(result)}
+                            {result.weather_warning ? (
+                              <View style={styles.warningTag}>
+                                <Text style={styles.warningTagText}>
+                                  {(result.indoor_score ?? 0.5) <= 0.33 ? 'Outside Event' : 'Potentially Outside'}
+                                </Text>
+                              </View>
+                            ) : null}
+                          </>
+                        </TouchableOpacity>
+                      )}
 
-              {/* Keep full-card favorite action available for now */}
-              {displayResults.length > 0 ? (
-                <View style={{ marginTop: 12 }}>
-                  <TouchableOpacity
-                    onPress={async () => {
-                      await toggleFavorite(displayResults[0]);
-                      alert('Saved to Favorites!');
-                    }}
-                    style={styles.favoriteButton}
-                  >
-                    <Text style={styles.favoriteButtonText}>❤️ Favorite Top Result</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : null}
-            </View>
+                      <TouchableOpacity
+                        style={styles.heartButton}
+                        onPress={() => handleToggleFavorite(result)}
+                        hitSlop={{ top: 8, left: 8, right: 8, bottom: 8 }}
+                      >
+                        <MaterialIcons
+                          name={isFavorited(result.id) ? 'favorite' : 'favorite-border'}
+                          size={20}
+                          color={isFavorited(result.id) ? '#E8607A' : '#666'}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  ))
+                ) : (
+                  <View style={styles.suggestionsEmpty}>
+                    <Text style={styles.suggestionsEmptyText}>No image-backed results found.</Text>
+                  </View>
+                )
+              ) : (
+                displayFavorites.length > 0 ? (
+                  displayFavorites.map(result => (
+                    <View key={result.id || result.name} style={styles.resultCard}>
+                      {selectedResultId === result.id ? (
+                        <View>
+                          <TouchableOpacity onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
+                            <Text style={styles.resultCardName} numberOfLines={2}>{result.name}</Text>
+                            <Text style={styles.resultCardMeta}>Tap to close</Text>
+                          </TouchableOpacity>
+                          <ScrollView
+                            style={styles.resultDetails}
+                            contentContainerStyle={styles.resultDetailsContent}
+                            showsVerticalScrollIndicator
+                            persistentScrollbar
+                            keyboardShouldPersistTaps="handled"
+                            nestedScrollEnabled
+                            directionalLockEnabled
+                          >
+                            <Text style={styles.resultDetailText}>{`Lat/Lng: ${result.latitude}, ${result.longitude}`}</Text>
+                            <Text style={styles.resultDetailText}>{`Distance: ${((Number(result.distance_meters ?? 0) / METERS_PER_MILE) || 0).toFixed(2)} mi`}</Text>
+                            <Text style={styles.resultDetailText}>{`Categories: ${(result.categories || []).join(', ')}`}</Text>
+                            <Text style={styles.resultDetailText}>
+                              {`Keywords (${(result.keyword_terms || []).length}): ${((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}`}
+                            </Text>
+                          </ScrollView>
+                        </View>
+                      ) : (
+                        <TouchableOpacity onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
+                          <>
+                            <Image source={{ uri: result.image_url }} style={styles.resultCardImage} />
+                            <Text style={styles.resultCardName} numberOfLines={2}>{result.name}</Text>
+                            {renderBadgesRow(result)}
+                          </>
+                        </TouchableOpacity>
+                      )}
 
-            <FiltersModal
-              visible={showModal}
-              onClose={() => setShowModal(false)}
-              selectedPreferences={selectedPreferences}
-              onTogglePreference={togglePreference}
-              selectedDistance={selectedDistance}
-              onSelectDistance={setSelectedDistance}
-              selectedTime={selectedTime}
-              onSelectTime={handleSelectTime}
-            />
-          </View>
-        </TouchableWithoutFeedback>
+                      <TouchableOpacity
+                        style={styles.heartButton}
+                        onPress={() => handleToggleFavorite(result)}
+                        hitSlop={{ top: 8, left: 8, right: 8, bottom: 8 }}
+                      >
+                        <MaterialIcons
+                          name={isFavorited(result.id) ? 'favorite' : 'favorite-border'}
+                          size={20}
+                          color={isFavorited(result.id) ? '#E8607A' : '#666'}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  ))
+                ) : (
+                  <View style={styles.suggestionsEmpty}>
+                    <Text style={styles.suggestionsEmptyText}>No favorites yet. Tap the heart on any result to save it.</Text>
+                  </View>
+                )
+              )}
+            </ScrollView>
+          </Animated.View>
+
+          <FiltersModal
+            visible={showModal}
+            onClose={handleCloseFilters}
+            selectedPreferences={selectedPreferences}
+            onTogglePreference={togglePreference}
+            selectedDistance={selectedDistance}
+            onSelectDistance={setSelectedDistance}
+            selectedTime={selectedTime}
+            onSelectTime={handleSelectTime}
+          />
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-

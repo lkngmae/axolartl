@@ -1,5 +1,30 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+export const getPersonalizationPayload = async () => {
+  const historyRaw = await AsyncStorage.getItem('search_history');
+  const favoriteKeywordRaw = await AsyncStorage.getItem('favorite_keyword_counts');
+  const favoritesRaw = await AsyncStorage.getItem('favorites');
+
+  const history = historyRaw ? JSON.parse(historyRaw) : {};
+  const favoriteKeywordCounts = favoriteKeywordRaw ? JSON.parse(favoriteKeywordRaw) : {};
+  const favorites = favoritesRaw ? JSON.parse(favoritesRaw) : [];
+
+  const favoriteCategories = favorites
+    .flatMap(f => Array.isArray(f.categories) ? f.categories : (f.category ? [f.category] : []))
+    .map(c => String(c).toLowerCase());
+
+  return {
+    history,
+    favorite_keyword_counts: favoriteKeywordCounts,
+    favorite_categories: favoriteCategories
+  };
+};
+
+export const getFavorites = async () => {
+  const favoritesRaw = await AsyncStorage.getItem('favorites');
+  return favoritesRaw ? JSON.parse(favoritesRaw) : [];
+};
+
 // --- THE READER (Ranking logic) ---
 export const personalizeResults = async (rawResults) => {
   const historyRaw = await AsyncStorage.getItem('search_history');
