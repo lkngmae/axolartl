@@ -31,6 +31,7 @@ app.post('/search', async (req, res) => {
 	    maxRadius,
 	    currentTime,
 	    selectedCategory,
+	    selectedCategories,
 	    preferredTimeLabel,
 	    weather: weatherOverride,
 	    weather_class: weatherClassOverride
@@ -42,8 +43,9 @@ app.post('/search', async (req, res) => {
     userLat,
     userLng,
     maxRadius,
-    currentTime,
+	    currentTime,
 	    selectedCategory,
+	    selectedCategories,
 	    null,
 	    preferredTimeLabel,
 	    weatherOverride,

@@ -119,6 +119,7 @@ const STOPWORDS = new Set([
 // When true, logs each location's TF-IDF vector to stdout for debugging.
 // Enable by setting the environment variable DEBUG_VECTORS=true.
 const DEBUG_VECTORS = process.env.DEBUG_VECTORS === 'true';
+const DEBUG_VECTOR_WEIGHTS = process.env.DEBUG_VECTOR_WEIGHTS === 'true';
 
 // Maps common plain-language terms to their canonical OSM-style key:value tags.
 // When a user types "park", the search also considers locations tagged
@@ -550,7 +551,7 @@ function haversineDistance(lat1, lon1, lat2, lon2) {
  *                           candidate locations.
  */
 async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, currentTime,
-    selectedCategory, personalization = null, preferredTimeLabel = null, weatherOverride = null, weatherClassOverride = null) {
+    selectedCategory, selectedCategories = null, personalization = null, preferredTimeLabel = null, weatherOverride = null, weatherClassOverride = null) {
 
     // Borrow a connection from the pool. It is returned via release() in the
     // finally block regardless of whether the search succeeds or throws.
@@ -670,20 +671,6 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             rows.forEach(r => nameCandidateIds.add(r.id));
         }
 
-        // Optionally resolve the selected category name to its numeric ID.
-        let categoryId = null;
-
-        if (selectedCategory) {
-            const [catRows] = await connection.execute(
-                `SELECT id FROM categories WHERE LOWER(name) = LOWER(?)`,
-                [selectedCategory]
-            );
-
-            if (catRows.length > 0) {
-                categoryId = catRows[0].id;
-            }
-        }
-
         const candidateIds = Array.from(new Set([
             ...candidateRows.map(r => r.location_id),
             ...nameCandidateIds
@@ -705,39 +692,6 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
                 // Fallback keeps ranking functional if weather API fails.
                 console.warn(error.message);
             }
-        }
-
-        let categoryMatches = new Set();
-        let categoryCountByLocationId = {};
-
-        if (categoryId) {
-            const locPlaceholders = candidateIds.map(() => '?').join(',');
-
-            const [catRows] = await connection.execute(
-                `SELECT location_id
-                FROM location_categories
-                WHERE category_id = ?
-                AND location_id IN (${locPlaceholders})`,
-                [categoryId, ...candidateIds]
-            );
-
-            categoryMatches = new Set(catRows.map(r => r.location_id));
-
-            // Penalize locations that match the selected category but are tagged
-            // with many categories overall (broad/ambiguous). Intuition: a
-            // location that is "history" and nothing else is a stronger match
-            // than one that is history+view+urban+water+...
-            const [countRows] = await connection.execute(
-                `SELECT location_id, COUNT(*) AS category_count
-                 FROM location_categories
-                 WHERE location_id IN (${locPlaceholders})
-                 GROUP BY location_id`,
-                candidateIds
-            );
-
-            countRows.forEach(row => {
-                categoryCountByLocationId[row.location_id] = Number(row.category_count) || 0;
-            });
         }
 
         // Get location-keyword pairs
@@ -801,6 +755,10 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
         locationCategoryRows.forEach(row => {
             locationCategories[row.location_id].push(row.name);
         });
+
+        const selectedCategoryList = Array.isArray(selectedCategories) && selectedCategories.length > 0
+            ? selectedCategories.map(c => String(c || '').toLowerCase()).filter(Boolean)
+            : (selectedCategory ? [String(selectedCategory).toLowerCase()] : []);
 
         // Build location vectors
         const locationVectors = {};
@@ -893,12 +851,25 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
             // and 0 = at the edge of maxRadius.
             const distanceScore = 1 - (distance / maxRadius);
 
-            // Binary bonus: 1 if the location belongs to the selected category,
-            // 0 otherwise. Penalize locations with many categories so that
-            // "narrow" locations rank higher than "broad" ones.
-            const categoryScore = categoryMatches.has(locId)
-                ? 1 / Math.max(1, categoryCountByLocationId[locId] || 1)
-                : 0;
+            // Category score:
+            // - match fraction = (matched selected categories) / (selected categories)
+            // - penalty factor = selectedCount / (selectedCount + extraCategories)
+            //   where extraCategories are categories on the event that the user did NOT select
+            let categoryScore = 0;
+            if (selectedCategoryList.length > 0) {
+                const eventCats = (locationCategories[locId] || []).map(c => String(c).toLowerCase());
+                const eventCatSet = new Set(eventCats);
+                const selectedSet = new Set(selectedCategoryList);
+                let matchCount = 0;
+                selectedSet.forEach(c => {
+                    if (eventCatSet.has(c)) matchCount += 1;
+                });
+                const selectedCount = selectedSet.size;
+                const extraCategories = Math.max(0, eventCatSet.size - matchCount);
+                const matchFraction = selectedCount > 0 ? (matchCount / selectedCount) : 0;
+                const penaltyFactor = selectedCount > 0 ? (selectedCount / (selectedCount + extraCategories)) : 0;
+                categoryScore = Math.max(0, matchFraction * penaltyFactor);
+            }
 
             // Weighted final score combining all three signals.
             const baseScore =
@@ -939,12 +910,47 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
 
             const keywordTermsMarked = allTerms.map(t => (matchedTermSet.has(t) ? `*${t}` : t));
             const matchedTerms = Array.from(matchedTermSet);
+            const vectorWeights = {};
+            const queryWeights = {};
+            const matchedWeights = {};
+
+            if (DEBUG_VECTOR_WEIGHTS) {
+                for (const [termId, weight] of Object.entries(queryVector)) {
+                    const termLabel =
+                        termId.startsWith('-')
+                            ? `name:${Object.keys(nameTokenIdByToken).find(t => nameTokenIdByToken[t] === termId) || termId}`
+                            : (keywordRows.find(r => String(r.id) === termId)?.term || termId);
+                    queryWeights[termLabel] = weight;
+                }
+
+                for (const [termId, weight] of Object.entries(vector)) {
+                    const termLabel =
+                        termId.startsWith('-')
+                            ? `name:${Object.keys(nameTokenIdByToken).find(t => nameTokenIdByToken[t] === termId) || termId}`
+                            : (keywordRows.find(r => String(r.id) === termId)?.term || termId);
+                    vectorWeights[termLabel] = weight;
+                }
+
+                matchedTerms.forEach(t => {
+                    if (vectorWeights[t] != null) {
+                        matchedWeights[t] = vectorWeights[t];
+                        return;
+                    }
+                    const nameKey = `name:${t}`;
+                    if (vectorWeights[nameKey] != null) {
+                        matchedWeights[nameKey] = vectorWeights[nameKey];
+                    }
+                });
+            }
 
             results.push({
                 ...location,
                 keyword_terms: allTerms,
                 keyword_terms_marked: keywordTermsMarked,
                 matched_terms: matchedTerms,
+                vector_weights: DEBUG_VECTOR_WEIGHTS ? vectorWeights : undefined,
+                query_weights: DEBUG_VECTOR_WEIGHTS ? queryWeights : undefined,
+                matched_weights: DEBUG_VECTOR_WEIGHTS ? matchedWeights : undefined,
                 categories: locationCategories[locId] || [],
                 cosine_score: cosine,
                 category_score: categoryScore,
@@ -1102,6 +1108,9 @@ async function searchLocations(pool, rawQuery, userLat, userLng, maxRadius, curr
                     matched_terms: Array.isArray(r.matched_terms)
                         ? r.matched_terms.slice(0, LOG_KEYWORDS_MAX)
                         : [],
+                    query_weights: r.query_weights,
+                    vector_weights: r.vector_weights,
+                    matched_weights: r.matched_weights,
                     keyword_terms_truncated: Array.isArray(r.keyword_terms)
                         ? r.keyword_terms.length > LOG_KEYWORDS_MAX
                         : false,

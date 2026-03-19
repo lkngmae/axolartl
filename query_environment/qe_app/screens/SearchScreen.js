@@ -73,10 +73,11 @@ export default function SearchScreen({ route }) {
   const [activeTab, setActiveTab] = useState('suggestions'); // 'suggestions' | 'favorites'
   const [hasSearched, setHasSearched] = useState(false);
   const [lastAppliedFilters, setLastAppliedFilters] = useState({
-    category: (preference || initialPreferences[0] || 'urban').toLowerCase(),
+    categoriesKey: (initialPreferences || []).map(p => String(p).toLowerCase()).sort().join('|'),
     distance: initialDistanceLabel,
     time: initialTimeLabel,
   });
+  const [showDebug, setShowDebug] = useState(false);
   const searchGlow = useRef(new Animated.Value(0)).current;
   const searchGlowLoopRef = useRef(null);
 
@@ -287,6 +288,7 @@ export default function SearchScreen({ route }) {
           maxRadius: parseFloat(miToMeters(selectedDistance)),
           currentTime: finalTime,
           selectedCategory: getSelectedCategory(),
+          selectedCategories: selectedPreferences.map(p => String(p).toLowerCase()),
           preferredTimeLabel: selectedTime,
           weather: wx?.weather ?? currentWeather,
           weather_class: wx?.weather_class ?? weatherClass,
@@ -305,10 +307,28 @@ export default function SearchScreen({ route }) {
 
       setResults(data);
       setSelectedResultId(null);
+      const categoriesKey = selectedPreferences
+        .map(p => String(p).toLowerCase())
+        .sort()
+        .join('|');
       setLastAppliedFilters({
-        category: getSelectedCategory(),
+        categoriesKey,
         distance: selectedDistance,
         time: selectedTime,
+      });
+
+      data.forEach((r, idx) => {
+        console.log(`[RESULT ${idx + 1}] ${r.name}`, {
+          overall_score: r.final_score,
+          base_score: r.base_score,
+          cosine_score: r.cosine_score,
+          distance_meters: r.distance_meters,
+          distance_score: r.distance_score,
+          category_score: r.category_score,
+          open_now: r.open_now,
+          open_now_source: r.open_now_source,
+          matched_terms: r.matched_terms || [],
+        });
       });
 
       const imageRanked = data
@@ -379,9 +399,12 @@ export default function SearchScreen({ route }) {
     setShowModal(false);
     if (!hasSearched) return;
 
-    const currentCategory = getSelectedCategory();
+    const currentCategoriesKey = selectedPreferences
+      .map(p => String(p).toLowerCase())
+      .sort()
+      .join('|');
     const changed =
-      currentCategory !== lastAppliedFilters.category ||
+      currentCategoriesKey !== lastAppliedFilters.categoriesKey ||
       selectedDistance !== lastAppliedFilters.distance ||
       selectedTime !== lastAppliedFilters.time;
 
@@ -473,21 +496,21 @@ export default function SearchScreen({ route }) {
 
               {/* Top overlay: weather + search card + filters row */}
               <View style={[styles.topOverlay, { top: topInset + 12 }]}>
-                <View style={styles.weatherBanner}>
-                  <Text style={styles.weatherTitle}>Current weather</Text>
-                  {weatherLoading ? (
-                    <View style={styles.weatherLoadingRow}>
-                      <ActivityIndicator size="small" color="#333" />
-                      <Text style={styles.weatherText}>Loading…</Text>
-                    </View>
-                  ) : currentWeather ? (
-                    <Text style={styles.weatherText}>
-                      {currentWeather.condition || 'Unknown'} · {Math.round(currentWeather.temperature ?? 0)}°F · precip {(Math.round((currentWeather.precipitationProbability ?? 0) * 100))}% · UV {currentWeather.uvIndex ?? '—'} · {weatherClass}
-                    </Text>
-                  ) : (
-                    <Text style={styles.weatherText}>Unavailable</Text>
-                  )}
-                </View>
+                {currentWeather ? (
+                  <View style={styles.weatherBanner}>
+                    <Text style={styles.weatherTitle}>Predicted weather</Text>
+                    {weatherLoading ? (
+                      <View style={styles.weatherLoadingRow}>
+                        <ActivityIndicator size="small" color="#333" />
+                        <Text style={styles.weatherText}>Loading…</Text>
+                      </View>
+                    ) : (
+                      <Text style={styles.weatherText}>
+                        {currentWeather.condition || 'Unknown'} · {Math.round(currentWeather.temperature ?? 0)}°F · precip {(Math.round((currentWeather.precipitationProbability ?? 0) * 100))}% · UV {currentWeather.uvIndex ?? '—'} · {weatherClass}
+                      </Text>
+                    )}
+                  </View>
+                ) : null}
 
                 <SearchBar
                   value={query}
@@ -553,6 +576,12 @@ export default function SearchScreen({ route }) {
               >
                 <Text style={[styles.tabText, activeTab === 'favorites' && styles.tabTextActive]}>Favorites</Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.tabButton, showDebug && styles.tabButtonActive]}
+                onPress={() => setShowDebug(prev => !prev)}
+              >
+                <Text style={[styles.tabText, showDebug && styles.tabTextActive]}>Debug</Text>
+              </TouchableOpacity>
             </View>
 
             <ScrollView
@@ -591,20 +620,37 @@ export default function SearchScreen({ route }) {
                         >
                           <Text style={styles.resultDetailText}>{`Lat/Lng: ${result.latitude}, ${result.longitude}`}</Text>
                           <Text style={styles.resultDetailText}>{`Distance: ${((Number(result.distance_meters ?? 0) / METERS_PER_MILE) || 0).toFixed(2)} mi`}</Text>
-                            <Text style={styles.resultDetailText}>
-                              {`Open status: ${
-                                result.open_now_source === 'skipped_outdoor'
-                                  ? 'Outside (not checked)'
-                                  : (result.open_now == null ? 'Unknown' : (result.open_now ? 'Open' : 'Closed'))
-                              }`}
-                            </Text>
-                            {result.open_now_source ? (
-                              <Text style={styles.resultDetailText}>{`Open source: ${result.open_now_source}`}</Text>
-                            ) : null}
-                            <Text style={styles.resultDetailText}>{`Categories: ${(result.categories || []).join(', ')}`}</Text>
-                            <Text style={styles.resultDetailText}>
-                              {`Keywords (${(result.keyword_terms || []).length}): ${((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}`}
-                            </Text>
+                          <Text style={styles.resultDetailText}>
+                            {`Open status: ${
+                              result.open_now_source === 'skipped_outdoor'
+                                ? 'Outside (not checked)'
+                                : (result.open_now == null ? 'Unknown' : (result.open_now ? 'Open' : 'Closed'))
+                            }`}
+                          </Text>
+                          {result.open_now_source ? (
+                            <Text style={styles.resultDetailText}>{`Open source: ${result.open_now_source}`}</Text>
+                          ) : null}
+                          <Text style={styles.resultDetailText}>{`Overall score: ${(Number(result.final_score) || 0).toFixed(4)}`}</Text>
+                          <Text style={styles.resultDetailText}>{`Base score: ${(Number(result.base_score) || 0).toFixed(4)}`}</Text>
+                          <Text style={styles.resultDetailText}>{`Cosine score: ${(Number(result.cosine_score) || 0).toFixed(4)}`}</Text>
+                          <Text style={styles.resultDetailText}>{`Distance score: ${(Number(result.distance_score) || 0).toFixed(4)}`}</Text>
+                          <Text style={styles.resultDetailText}>{`Category score: ${(Number(result.category_score) || 0).toFixed(4)}`}</Text>
+                          {Array.isArray(result.matched_terms) ? (
+                            <Text style={styles.resultDetailText}>{`Matched terms: ${result.matched_terms.join(', ')}`}</Text>
+                          ) : null}
+                          {showDebug && result.query_weights ? (
+                            <Text style={styles.resultDetailText}>{`Query weights: ${JSON.stringify(result.query_weights)}`}</Text>
+                          ) : null}
+                          {showDebug && result.vector_weights ? (
+                            <Text style={styles.resultDetailText}>{`Vector weights: ${JSON.stringify(result.vector_weights)}`}</Text>
+                          ) : null}
+                          {showDebug && result.matched_weights ? (
+                            <Text style={styles.resultDetailText}>{`Matched weights: ${JSON.stringify(result.matched_weights)}`}</Text>
+                          ) : null}
+                          <Text style={styles.resultDetailText}>{`Categories: ${(result.categories || []).join(', ')}`}</Text>
+                          <Text style={styles.resultDetailText}>
+                            {`Keywords (${(result.keyword_terms || []).length}): ${((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}`}
+                          </Text>
                             {result.weather_warning ? (
                               <Text style={styles.warningTextSmall}>{result.weather_warning}</Text>
                             ) : null}
@@ -669,6 +715,23 @@ export default function SearchScreen({ route }) {
                           >
                             <Text style={styles.resultDetailText}>{`Lat/Lng: ${result.latitude}, ${result.longitude}`}</Text>
                             <Text style={styles.resultDetailText}>{`Distance: ${((Number(result.distance_meters ?? 0) / METERS_PER_MILE) || 0).toFixed(2)} mi`}</Text>
+                            <Text style={styles.resultDetailText}>{`Overall score: ${(Number(result.final_score) || 0).toFixed(4)}`}</Text>
+                            <Text style={styles.resultDetailText}>{`Base score: ${(Number(result.base_score) || 0).toFixed(4)}`}</Text>
+                            <Text style={styles.resultDetailText}>{`Cosine score: ${(Number(result.cosine_score) || 0).toFixed(4)}`}</Text>
+                            <Text style={styles.resultDetailText}>{`Distance score: ${(Number(result.distance_score) || 0).toFixed(4)}`}</Text>
+                            <Text style={styles.resultDetailText}>{`Category score: ${(Number(result.category_score) || 0).toFixed(4)}`}</Text>
+                            {Array.isArray(result.matched_terms) ? (
+                              <Text style={styles.resultDetailText}>{`Matched terms: ${result.matched_terms.join(', ')}`}</Text>
+                            ) : null}
+                            {showDebug && result.query_weights ? (
+                              <Text style={styles.resultDetailText}>{`Query weights: ${JSON.stringify(result.query_weights)}`}</Text>
+                            ) : null}
+                            {showDebug && result.vector_weights ? (
+                              <Text style={styles.resultDetailText}>{`Vector weights: ${JSON.stringify(result.vector_weights)}`}</Text>
+                            ) : null}
+                            {showDebug && result.matched_weights ? (
+                              <Text style={styles.resultDetailText}>{`Matched weights: ${JSON.stringify(result.matched_weights)}`}</Text>
+                            ) : null}
                             <Text style={styles.resultDetailText}>{`Categories: ${(result.categories || []).join(', ')}`}</Text>
                             <Text style={styles.resultDetailText}>
                               {`Keywords (${(result.keyword_terms || []).length}): ${((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}`}
