@@ -591,37 +591,46 @@ export default function SearchScreen({ route }) {
                     <View key={result.id} style={styles.resultCard}>
                       {selectedResultId === result.id ? (
                         <View>
-                          <TouchableOpacity onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
-                            <Text style={styles.resultCardName} numberOfLines={2}>{result.name}</Text>
-                            <Text style={styles.resultCardMeta}>Tap to close</Text>
+                          <TouchableOpacity style={styles.expandedCardHeader} onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
+                            <Text style={styles.expandedCardName} numberOfLines={2}>{result.name}</Text>
+                            <MaterialIcons name="expand-more" size={20} color="rgba(255,255,255,0.7)" />
                           </TouchableOpacity>
-                        <ScrollView
-                          style={styles.resultDetails}
-                          contentContainerStyle={styles.resultDetailsContent}
-                          showsVerticalScrollIndicator
-                          persistentScrollbar
-                          keyboardShouldPersistTaps="handled"
-                          nestedScrollEnabled
-                          directionalLockEnabled
-                        >
-                          <Text style={styles.resultDetailText}>{`Lat/Lng: ${result.latitude}, ${result.longitude}`}</Text>
-                          <Text style={styles.resultDetailText}>{`Distance: ${((Number(result.distance_meters ?? 0) / METERS_PER_MILE) || 0).toFixed(2)} mi`}</Text>
-                            <Text style={styles.resultDetailText}>
-                              {`Open status: ${
-                                result.open_now_source === 'skipped_outdoor'
-                                  ? 'Outside (not checked)'
-                                  : (result.open_now == null ? 'Unknown' : (result.open_now ? 'Open' : 'Closed'))
-                              }`}
-                            </Text>
-                            {result.open_now_source ? (
-                              <Text style={styles.resultDetailText}>{`Open source: ${result.open_now_source}`}</Text>
-                            ) : null}
-                            <Text style={styles.resultDetailText}>{`Categories: ${(result.categories || []).join(', ')}`}</Text>
-                            <Text style={styles.resultDetailText}>
-                              {`Keywords (${(result.keyword_terms || []).length}): ${((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}`}
-                            </Text>
+                          <ScrollView
+                            style={styles.resultDetails}
+                            contentContainerStyle={styles.resultDetailsContent}
+                            showsVerticalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                            nestedScrollEnabled
+                            directionalLockEnabled
+                          >
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Distance</Text>
+                              <Text style={styles.expandedMeta}>{((Number(result.distance_meters ?? 0) / METERS_PER_MILE) || 0).toFixed(2)} MI</Text>
+                            </View>
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Coords</Text>
+                              <Text style={styles.expandedMeta}>{result.latitude}, {result.longitude}</Text>
+                            </View>
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Status</Text>
+                              {renderStatusBadge(result) ?? <Text style={styles.expandedMeta}>Unknown</Text>}
+                            </View>
+                            {(result.categories || []).length > 0 && (
+                              <View style={styles.expandedRow}>
+                                <Text style={styles.expandedLabel}>Categories</Text>
+                                <Text style={styles.expandedMeta}>{result.categories.join(', ')}</Text>
+                              </View>
+                            )}
+                            {(result.keyword_terms || []).length > 0 && (
+                              <View style={styles.expandedRow}>
+                                <Text style={styles.expandedLabel}>Keywords</Text>
+                                <Text style={styles.expandedMeta}>{((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}</Text>
+                              </View>
+                            )}
                             {result.weather_warning ? (
-                              <Text style={styles.warningTextSmall}>{result.weather_warning}</Text>
+                              <View style={[styles.warningTag, { marginTop: 4 }]}>
+                                <Text style={styles.warningTagText}>{result.weather_warning}</Text>
+                              </View>
                             ) : null}
                           </ScrollView>
                         </View>
@@ -671,25 +680,38 @@ export default function SearchScreen({ route }) {
                     <View key={result.id || result.name} style={styles.resultCard}>
                       {selectedResultId === result.id ? (
                         <View>
-                          <TouchableOpacity onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
-                            <Text style={styles.resultCardName} numberOfLines={2}>{result.name}</Text>
-                            <Text style={styles.resultCardMeta}>Tap to close</Text>
+                          <TouchableOpacity style={styles.expandedCardHeader} onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
+                            <Text style={styles.expandedCardName} numberOfLines={2}>{result.name}</Text>
+                            <MaterialIcons name="expand-more" size={20} color="rgba(255,255,255,0.7)" />
                           </TouchableOpacity>
                           <ScrollView
                             style={styles.resultDetails}
                             contentContainerStyle={styles.resultDetailsContent}
-                            showsVerticalScrollIndicator
-                            persistentScrollbar
+                            showsVerticalScrollIndicator={false}
                             keyboardShouldPersistTaps="handled"
                             nestedScrollEnabled
                             directionalLockEnabled
                           >
-                            <Text style={styles.resultDetailText}>{`Lat/Lng: ${result.latitude}, ${result.longitude}`}</Text>
-                            <Text style={styles.resultDetailText}>{`Distance: ${((Number(result.distance_meters ?? 0) / METERS_PER_MILE) || 0).toFixed(2)} mi`}</Text>
-                            <Text style={styles.resultDetailText}>{`Categories: ${(result.categories || []).join(', ')}`}</Text>
-                            <Text style={styles.resultDetailText}>
-                              {`Keywords (${(result.keyword_terms || []).length}): ${((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}`}
-                            </Text>
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Distance</Text>
+                              <Text style={styles.expandedMeta}>{((Number(result.distance_meters ?? 0) / METERS_PER_MILE) || 0).toFixed(2)} MI</Text>
+                            </View>
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Coords</Text>
+                              <Text style={styles.expandedMeta}>{result.latitude}, {result.longitude}</Text>
+                            </View>
+                            {(result.categories || []).length > 0 && (
+                              <View style={styles.expandedRow}>
+                                <Text style={styles.expandedLabel}>Categories</Text>
+                                <Text style={styles.expandedMeta}>{result.categories.join(', ')}</Text>
+                              </View>
+                            )}
+                            {(result.keyword_terms || []).length > 0 && (
+                              <View style={styles.expandedRow}>
+                                <Text style={styles.expandedLabel}>Keywords</Text>
+                                <Text style={styles.expandedMeta}>{((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}</Text>
+                              </View>
+                            )}
                           </ScrollView>
                         </View>
                       ) : (
