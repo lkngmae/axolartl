@@ -339,7 +339,7 @@ export default StyleSheet.create({
   },
   resultDetails: {
     backgroundColor: '#FBF7EF',
-    maxHeight: 220,
+    maxHeight: 320,
   },
   resultDetailsContent: {
     padding: 12,
@@ -350,6 +350,11 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  expandedDivider: {
+    height: 1,
+    backgroundColor: 'rgba(26,92,112,0.15)',
+    marginVertical: 6,
   },
   expandedLabel: {
     fontSize: 11,
