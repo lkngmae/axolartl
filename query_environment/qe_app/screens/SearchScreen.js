@@ -12,7 +12,6 @@ import {
   TouchableWithoutFeedback,
   Animated,
   PanResponder,
-  Dimensions,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker } from 'react-native-maps';
@@ -30,7 +29,7 @@ import {
 
 const FALLBACK_LOCATION = { latitude: 33.6437, longitude: -117.8391 };
 const METERS_PER_MILE = 1609.344;
-const API_BASE = 'http://your_local_ip:3000';
+const API_BASE = 'http://192.168.0.143:3000';
 
 export default function SearchScreen({ route }) {
   const { top: topInset } = useSafeAreaInsets();
@@ -73,6 +72,7 @@ export default function SearchScreen({ route }) {
   const [selectedResultId, setSelectedResultId] = useState(null);
   const [activeTab, setActiveTab] = useState('suggestions'); // 'suggestions' | 'favorites'
   const [hasSearched, setHasSearched] = useState(false);
+  const [isSheetExpanded, setIsSheetExpanded] = useState(false);
   const [lastAppliedFilters, setLastAppliedFilters] = useState({
     category: (preference || initialPreferences[0] || 'urban').toLowerCase(),
     distance: initialDistanceLabel,
@@ -82,8 +82,9 @@ export default function SearchScreen({ route }) {
   const searchGlowLoopRef = useRef(null);
 
   // Bottom sheet: 0 = collapsed, negative = expanded upward.
-  const screenHeight = Dimensions.get('window').height;
-  const expandedTranslateY = -Math.min(420, Math.max(240, Math.round(screenHeight * 0.45)));
+  const SHEET_PEEK_HEIGHT = 180;    // px visible above screen bottom when collapsed
+  const SHEET_EXPANDED_HEIGHT = 370; // handle + tabs + full card + padding
+  const expandedTranslateY = -(SHEET_EXPANDED_HEIGHT - SHEET_PEEK_HEIGHT); // -190
   const sheetTranslateY = useRef(new Animated.Value(0)).current;
   const sheetOffsetRef = useRef(0);
   const sheetStartRef = useRef(0);
@@ -118,6 +119,7 @@ export default function SearchScreen({ route }) {
         const shouldExpand = current < expandedTranslateY / 2;
         const target = shouldExpand ? expandedTranslateY : 0;
         sheetOffsetRef.current = target;
+        setIsSheetExpanded(shouldExpand);
         Animated.spring(sheetTranslateY, {
           toValue: target,
           useNativeDriver: true,
@@ -263,11 +265,6 @@ export default function SearchScreen({ route }) {
     return (selectedPreferences[0] || preference || 'urban').toLowerCase();
   };
 
-  const handleSetLocation = () => {
-    const next = { latitude: mapRegion.latitude, longitude: mapRegion.longitude };
-    setCustomLocation(next);
-    fetchWeather(next);
-  };
 
   const handleSearch = async () => {
     await saveSearchToHistory(query);
@@ -414,6 +411,12 @@ export default function SearchScreen({ route }) {
     );
   };
 
+  const renderStatusBadgeOverlay = (result) => {
+    const badge = renderStatusBadge(result);
+    if (!badge) return null;
+    return <View style={styles.statusBadgeOverlay}>{badge}</View>;
+  };
+
   const renderOutsideWeatherBadge = (result) => {
     const indicator = result?.outside_weather_indicator;
     if (!indicator || !indicator.type) return null;
@@ -531,10 +534,6 @@ export default function SearchScreen({ route }) {
                   </ScrollView>
                 </View>
               </View>
-
-                <TouchableOpacity style={styles.setLocationButton} onPress={handleSetLocation}>
-                  <Text style={styles.setLocationText}>SET LOCATION</Text>
-                </TouchableOpacity>
             </View>
           </TouchableWithoutFeedback>
 
@@ -542,11 +541,19 @@ export default function SearchScreen({ route }) {
           <Animated.View
             style={[
               styles.suggestionsPanel,
-              { transform: [{ translateY: sheetTranslateY }] },
+              {
+                height: Math.abs(expandedTranslateY) + SHEET_PEEK_HEIGHT,
+                bottom: expandedTranslateY,
+                transform: [{ translateY: sheetTranslateY }],
+              },
             ]}
           >
             <View style={styles.dragHandleHitArea} {...panResponder.panHandlers}>
-              <View style={styles.dragHandle} />
+              <MaterialIcons
+                name={isSheetExpanded ? 'expand-more' : 'expand-less'}
+                size={28}
+                color="#aaa"
+              />
             </View>
             <View style={styles.tabsRow}>
               <TouchableOpacity
@@ -620,13 +627,15 @@ export default function SearchScreen({ route }) {
                         </View>
                       ) : (
                         <TouchableOpacity onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
-                          <>
+                          <View style={styles.resultCardImageContainer}>
                             <Image source={{ uri: result.image_url }} style={styles.resultCardImage} />
+                            {renderStatusBadgeOverlay(result)}
+                          </View>
+                          <View style={styles.resultCardInfo}>
                             <Text style={styles.resultCardName} numberOfLines={2}>{result.name}</Text>
                             {typeof result.distance_meters === 'number' ? (
-                              <Text style={styles.resultCardMeta}>{(result.distance_meters / METERS_PER_MILE).toFixed(2)} mi</Text>
+                              <Text style={styles.resultCardMeta}>{(result.distance_meters / METERS_PER_MILE).toFixed(2)} MI</Text>
                             ) : null}
-                            {renderBadgesRow(result)}
                             {result.weather_warning ? (
                               <View style={styles.warningTag}>
                                 <Text style={styles.warningTagText}>
@@ -634,7 +643,7 @@ export default function SearchScreen({ route }) {
                                 </Text>
                               </View>
                             ) : null}
-                          </>
+                          </View>
                         </TouchableOpacity>
                       )}
 
@@ -646,7 +655,7 @@ export default function SearchScreen({ route }) {
                         <MaterialIcons
                           name={isFavorited(result.id) ? 'favorite' : 'favorite-border'}
                           size={20}
-                          color={isFavorited(result.id) ? '#E8607A' : '#666'}
+                          color={isFavorited(result.id) ? '#E8607A' : '#fff'}
                         />
                       </TouchableOpacity>
                     </View>
@@ -685,11 +694,13 @@ export default function SearchScreen({ route }) {
                         </View>
                       ) : (
                         <TouchableOpacity onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
-                          <>
+                          <View style={styles.resultCardImageContainer}>
                             <Image source={{ uri: result.image_url }} style={styles.resultCardImage} />
+                            {renderStatusBadgeOverlay(result)}
+                          </View>
+                          <View style={styles.resultCardInfo}>
                             <Text style={styles.resultCardName} numberOfLines={2}>{result.name}</Text>
-                            {renderBadgesRow(result)}
-                          </>
+                          </View>
                         </TouchableOpacity>
                       )}
 
@@ -701,7 +712,7 @@ export default function SearchScreen({ route }) {
                         <MaterialIcons
                           name={isFavorited(result.id) ? 'favorite' : 'favorite-border'}
                           size={20}
-                          color={isFavorited(result.id) ? '#E8607A' : '#666'}
+                          color={isFavorited(result.id) ? '#E8607A' : '#fff'}
                         />
                       </TouchableOpacity>
                     </View>
