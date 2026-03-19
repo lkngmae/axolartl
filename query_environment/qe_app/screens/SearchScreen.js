@@ -30,7 +30,7 @@ import {
 
 const FALLBACK_LOCATION = { latitude: 33.6437, longitude: -117.8391 };
 const METERS_PER_MILE = 1609.344;
-const API_BASE = 'http://your-ip:3000';
+const API_BASE = 'http://your-ip-here:3000';
 
 export default function SearchScreen({ route }) {
   const { top: topInset } = useSafeAreaInsets();

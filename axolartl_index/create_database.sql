@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS locations (
     coordinates POINT NOT NULL,
     SPATIAL INDEX(coordinates), 
     image_url TEXT DEFAULT NULL,
-    image_updated_at TIMESTAMP NULL DEFAULT NULL;
+    image_updated_at TIMESTAMP NULL DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS keywords (
