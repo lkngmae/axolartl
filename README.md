@@ -2,6 +2,10 @@
 
 ## Running Commands
 
+Run database:
+Download mysql
+Run the axolartl_index/create_database.sql scipt
+
 Run backend:
 ```
 cd axolartl/query_environment/qe_app/qe_backend
