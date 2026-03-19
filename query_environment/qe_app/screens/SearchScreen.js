@@ -44,6 +44,7 @@ export default function SearchScreen({ route }) {
   } = route.params;
 
   const mapRef = useRef(null);
+  const hasAutoSearched = useRef(false);
 
   const [query, setQuery] = useState(initialQuery);
   const [selectedPreferences, setSelectedPreferences] = useState(initialPreferences.map(p => p.toUpperCase()));
@@ -126,6 +127,13 @@ export default function SearchScreen({ route }) {
       },
     })
   ).current;
+
+  useEffect(() => {
+    if (!userLocation || !currentTime || hasAutoSearched.current) return;
+    hasAutoSearched.current = true;
+    handleSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLocation, currentTime]);
 
   useEffect(() => {
     const initializeLocation = async () => {
