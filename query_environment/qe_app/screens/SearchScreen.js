@@ -605,7 +605,7 @@ export default function SearchScreen({ route }) {
                           >
                             <View style={styles.expandedRow}>
                               <Text style={styles.expandedLabel}>Distance</Text>
-                              <Text style={styles.expandedMeta}>{((Number(result.distance_meters ?? 0) / METERS_PER_MILE) || 0).toFixed(2)} MI</Text>
+                              <Text style={styles.expandedMeta}>{((Number(result.distance_meters ?? 0) / METERS_PER_MILE) || 0).toFixed(2)} MI ({Math.round(result.distance_meters ?? 0)} m)</Text>
                             </View>
                             <View style={styles.expandedRow}>
                               <Text style={styles.expandedLabel}>Coords</Text>
@@ -624,7 +624,45 @@ export default function SearchScreen({ route }) {
                             {(result.keyword_terms || []).length > 0 && (
                               <View style={styles.expandedRow}>
                                 <Text style={styles.expandedLabel}>Keywords</Text>
-                                <Text style={styles.expandedMeta}>{((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}</Text>
+                                <Text style={styles.expandedMeta}>
+                                  {((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}
+                                  {result.keyword_terms.length > 80 ? ' …' : ''}
+                                </Text>
+                              </View>
+                            )}
+                            {(result.matched_terms || []).length > 0 && (
+                              <View style={styles.expandedRow}>
+                                <Text style={styles.expandedLabel}>Matched</Text>
+                                <Text style={styles.expandedMeta}>{result.matched_terms.join(', ')}</Text>
+                              </View>
+                            )}
+                            <View style={styles.expandedDivider} />
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Overall</Text>
+                              <Text style={styles.expandedMeta}>{(result.final_score ?? 0).toFixed(4)}</Text>
+                            </View>
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Base</Text>
+                              <Text style={styles.expandedMeta}>{(result.base_score ?? 0).toFixed(4)}</Text>
+                            </View>
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Cosine</Text>
+                              <Text style={styles.expandedMeta}>{(result.cosine_score ?? 0).toFixed(4)}</Text>
+                            </View>
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Distance</Text>
+                              <Text style={styles.expandedMeta}>{(result.distance_score ?? 0).toFixed(4)}</Text>
+                            </View>
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Category</Text>
+                              <Text style={styles.expandedMeta}>{(result.category_score ?? 0).toFixed(4)}</Text>
+                            </View>
+                            {result.score_weights && (
+                              <View style={styles.expandedRow}>
+                                <Text style={styles.expandedLabel}>Weights</Text>
+                                <Text style={styles.expandedMeta}>
+                                  cos {Math.round((result.score_weights.cosine ?? 0) * 100)}% · cat {Math.round((result.score_weights.category ?? 0) * 100)}% · dist {Math.round((result.score_weights.distance ?? 0) * 100)}%
+                                </Text>
                               </View>
                             )}
                             {result.weather_warning ? (
@@ -694,7 +732,7 @@ export default function SearchScreen({ route }) {
                           >
                             <View style={styles.expandedRow}>
                               <Text style={styles.expandedLabel}>Distance</Text>
-                              <Text style={styles.expandedMeta}>{((Number(result.distance_meters ?? 0) / METERS_PER_MILE) || 0).toFixed(2)} MI</Text>
+                              <Text style={styles.expandedMeta}>{((Number(result.distance_meters ?? 0) / METERS_PER_MILE) || 0).toFixed(2)} MI ({Math.round(result.distance_meters ?? 0)} m)</Text>
                             </View>
                             <View style={styles.expandedRow}>
                               <Text style={styles.expandedLabel}>Coords</Text>
@@ -709,7 +747,45 @@ export default function SearchScreen({ route }) {
                             {(result.keyword_terms || []).length > 0 && (
                               <View style={styles.expandedRow}>
                                 <Text style={styles.expandedLabel}>Keywords</Text>
-                                <Text style={styles.expandedMeta}>{((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}</Text>
+                                <Text style={styles.expandedMeta}>
+                                  {((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}
+                                  {result.keyword_terms.length > 80 ? ' …' : ''}
+                                </Text>
+                              </View>
+                            )}
+                            {(result.matched_terms || []).length > 0 && (
+                              <View style={styles.expandedRow}>
+                                <Text style={styles.expandedLabel}>Matched</Text>
+                                <Text style={styles.expandedMeta}>{result.matched_terms.join(', ')}</Text>
+                              </View>
+                            )}
+                            <View style={styles.expandedDivider} />
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Overall</Text>
+                              <Text style={styles.expandedMeta}>{(result.final_score ?? 0).toFixed(4)}</Text>
+                            </View>
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Base</Text>
+                              <Text style={styles.expandedMeta}>{(result.base_score ?? 0).toFixed(4)}</Text>
+                            </View>
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Cosine</Text>
+                              <Text style={styles.expandedMeta}>{(result.cosine_score ?? 0).toFixed(4)}</Text>
+                            </View>
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Distance</Text>
+                              <Text style={styles.expandedMeta}>{(result.distance_score ?? 0).toFixed(4)}</Text>
+                            </View>
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Category</Text>
+                              <Text style={styles.expandedMeta}>{(result.category_score ?? 0).toFixed(4)}</Text>
+                            </View>
+                            {result.score_weights && (
+                              <View style={styles.expandedRow}>
+                                <Text style={styles.expandedLabel}>Weights</Text>
+                                <Text style={styles.expandedMeta}>
+                                  cos {Math.round((result.score_weights.cosine ?? 0) * 100)}% · cat {Math.round((result.score_weights.category ?? 0) * 100)}% · dist {Math.round((result.score_weights.distance ?? 0) * 100)}%
+                                </Text>
                               </View>
                             )}
                           </ScrollView>
