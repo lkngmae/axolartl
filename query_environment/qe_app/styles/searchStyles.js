@@ -225,14 +225,22 @@ export default StyleSheet.create({
   },
   resultCard: {
     width: 200,
+    height: 240,
     borderRadius: 16,
-    overflow: 'hidden',
     backgroundColor: '#FBF7EF',
+    overflow: 'hidden',
     position: 'relative',
+  },
+  expandedCardContainer: {
+    flex: 1,
+    flexDirection: 'column',
   },
   resultCardImageContainer: {
     position: 'relative',
     width: '100%',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    overflow: 'hidden',
   },
   resultCardImage: {
     width: '100%',
@@ -339,7 +347,7 @@ export default StyleSheet.create({
   },
   resultDetails: {
     backgroundColor: '#FBF7EF',
-    maxHeight: 320,
+    flex: 1,
   },
   resultDetailsContent: {
     padding: 12,

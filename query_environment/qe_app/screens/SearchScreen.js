@@ -619,7 +619,7 @@ export default function SearchScreen({ route }) {
                   displayResults.map(result => (
                     <View key={result.id} style={styles.resultCard}>
                       {selectedResultId === result.id ? (
-                        <View>
+                        <View style={styles.expandedCardContainer}>
                           <TouchableOpacity style={styles.expandedCardHeader} onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
                             <Text style={styles.expandedCardName} numberOfLines={2}>{result.name}</Text>
                             <MaterialIcons name="expand-more" size={20} color="rgba(255,255,255,0.7)" />
@@ -777,7 +777,7 @@ export default function SearchScreen({ route }) {
                   displayFavorites.map(result => (
                     <View key={result.id || result.name} style={styles.resultCard}>
                       {selectedResultId === result.id ? (
-                        <View>
+                        <View style={styles.expandedCardContainer}>
                           <TouchableOpacity style={styles.expandedCardHeader} onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
                             <Text style={styles.expandedCardName} numberOfLines={2}>{result.name}</Text>
                             <MaterialIcons name="expand-more" size={20} color="rgba(255,255,255,0.7)" />
