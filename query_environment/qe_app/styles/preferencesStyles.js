@@ -13,11 +13,9 @@ export default StyleSheet.create({
 
   // Hero section (branding + icon + heading)
   heroSection: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingBottom: 16,
   },
   brandText: {
     color: '#F5E6A3',
@@ -140,7 +138,7 @@ export default StyleSheet.create({
   },
   modalSectionTitle: {
     fontSize: 20,
-    color: '#1a1a2e',
+    color: 'rgba(10, 45, 51, 0.87)',
     fontWeight: '500',
     marginTop: 20,
     marginBottom: 8,

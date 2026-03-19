@@ -1,27 +1,40 @@
-import React, { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
+  Animated,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { miToMeters, TIME_MAP } from '../constants';
 import FiltersModal from '../components/FiltersModal';
+import SearchBar from '../components/SearchBar';
 import styles from '../styles/preferencesStyles';
 
-export default function PreferencesScreen({ navigation }) {
+export default function InitialScreen({ navigation }) {
   const [selectedPreferences, setSelectedPreferences] = useState([]);
   const [selectedDistance, setSelectedDistance] = useState('10 MI');
   const [selectedTime, setSelectedTime] = useState(null);
   const [query, setQuery] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const glowAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, { toValue: 1, duration: 900, useNativeDriver: true }),
+        Animated.timing(glowAnim, { toValue: 0, duration: 900, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, []);
 
   const togglePreference = (item) => {
     setSelectedPreferences(prev =>
@@ -53,29 +66,19 @@ export default function PreferencesScreen({ navigation }) {
         style={{ flex: 1 }}
       >
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, justifyContent: 'center' }}>
             {/* Hero: icon + branding */}
             <View style={styles.heroSection}>
               <MaterialIcons name="search" size={130} color="#F5E6A3" />
               <Text style={styles.brandText}>BY AXOLARTL STUDIOS</Text>
             </View>
 
-            {/* Search card — matches SearchScreen style */}
-            <View style={styles.card}>
-              <TextInput
-                style={styles.queryInput}
-                placeholder="What specific subject or scene would you like to capture?"
-                placeholderTextColor="#7BBFBE"
-                value={query}
-                onChangeText={setQuery}
-                multiline
-                textAlignVertical="top"
-                blurOnSubmit={false}
-              />
-              <TouchableOpacity style={styles.searchIconButton} onPress={handleSearch}>
-                <MaterialIcons name="search" size={26} color="#B8960C" />
-              </TouchableOpacity>
-            </View>
+            <SearchBar
+              value={query}
+              onChangeText={setQuery}
+              onSearch={handleSearch}
+              glowAnim={glowAnim}
+            />
 
             {/* Filter row + pills on teal background */}
             <View style={styles.bottomFilters}>

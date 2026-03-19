@@ -1,6 +1,6 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import PreferencesScreen from './screens/PreferencesScreen';
+import InitialScreen from './screens/InitialScreen';
 import SearchScreen from './screens/SearchScreen';
 
 const Stack = createNativeStackNavigator();
@@ -11,7 +11,7 @@ export default function App() {
       <Stack.Navigator>
         <Stack.Screen
           name="Preferences"
-          component={PreferencesScreen}
+          component={InitialScreen}
           options={{ headerShown: false }}
         />
         <Stack.Screen

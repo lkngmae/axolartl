@@ -49,7 +49,7 @@ export default function FiltersModal({
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Preferences</Text>
             <TouchableOpacity onPress={onClose}>
-              <MaterialIcons name="close" size={26} color="#333" />
+              <MaterialIcons name="close" size={26} color="rgba(10, 45, 51, 0.87)" />
             </TouchableOpacity>
           </View>
 

@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   Image,
@@ -20,6 +19,7 @@ import MapView, { Marker } from 'react-native-maps';
 import * as Location from 'expo-location';
 import { MaterialIcons } from '@expo/vector-icons';
 import FiltersModal from '../components/FiltersModal';
+import SearchBar from '../components/SearchBar';
 import { miToMeters, TIME_MAP } from '../constants';
 import styles from '../styles/searchStyles';
 import {
@@ -489,35 +489,12 @@ export default function SearchScreen({ route }) {
                   )}
                 </View>
 
-                <View style={styles.searchCard}>
-                  <TextInput
-                    style={styles.searchInput}
-                    placeholder="What specific subject or scene would you like to capture?"
-                    placeholderTextColor="#7BBFBE"
-                    value={query}
-                    onChangeText={setQuery}
-                    multiline
-                  />
-                  <View style={styles.searchIconWrap}>
-                    <Animated.View
-                      pointerEvents="none"
-                      style={[
-                        styles.searchIconGlow,
-                        {
-                          opacity: searchGlow.interpolate({ inputRange: [0, 1], outputRange: [0, 0.75] }),
-                          transform: [{ scale: searchGlow.interpolate({ inputRange: [0, 1], outputRange: [1, 1.22] }) }],
-                        },
-                      ]}
-                    />
-                    <TouchableOpacity style={styles.searchIconButton} onPress={handleSearch}>
-                      {resultsLoading ? (
-                        <ActivityIndicator size="small" color="#B8960C" />
-                      ) : (
-                        <MaterialIcons name="search" size={24} color="#B8960C" />
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                </View>
+                <SearchBar
+                  value={query}
+                  onChangeText={setQuery}
+                  onSearch={handleSearch}
+                  loading={resultsLoading}
+                />
 
                 <View style={styles.filtersRow}>
                   <TouchableOpacity style={styles.filterButton} onPress={() => setShowModal(true)}>
