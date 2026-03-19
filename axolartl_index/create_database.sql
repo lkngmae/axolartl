@@ -1,5 +1,6 @@
 CREATE DATABASE IF NOT EXISTS axolartl;
 USE axolartl;
+
 CREATE TABLE IF NOT EXISTS locations (
     id BIGINT PRIMARY KEY,          -- OSM ID
     name VARCHAR(255),

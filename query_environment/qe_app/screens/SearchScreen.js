@@ -12,7 +12,6 @@ import {
   TouchableWithoutFeedback,
   Animated,
   PanResponder,
-  Dimensions,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import MapView, { Marker } from 'react-native-maps';
@@ -44,6 +43,7 @@ export default function SearchScreen({ route }) {
   } = route.params;
 
   const mapRef = useRef(null);
+  const hasAutoSearched = useRef(false);
 
   const [query, setQuery] = useState(initialQuery);
   const [selectedPreferences, setSelectedPreferences] = useState(initialPreferences.map(p => p.toUpperCase()));
@@ -72,6 +72,7 @@ export default function SearchScreen({ route }) {
   const [selectedResultId, setSelectedResultId] = useState(null);
   const [activeTab, setActiveTab] = useState('suggestions'); // 'suggestions' | 'favorites'
   const [hasSearched, setHasSearched] = useState(false);
+  const [isSheetExpanded, setIsSheetExpanded] = useState(false);
   const [lastAppliedFilters, setLastAppliedFilters] = useState({
     categoriesKey: (initialPreferences || []).map(p => String(p).toLowerCase()).sort().join('|'),
     distance: initialDistanceLabel,
@@ -82,8 +83,9 @@ export default function SearchScreen({ route }) {
   const searchGlowLoopRef = useRef(null);
 
   // Bottom sheet: 0 = collapsed, negative = expanded upward.
-  const screenHeight = Dimensions.get('window').height;
-  const expandedTranslateY = -Math.min(420, Math.max(240, Math.round(screenHeight * 0.45)));
+  const SHEET_PEEK_HEIGHT = 180;    // px visible above screen bottom when collapsed
+  const SHEET_EXPANDED_HEIGHT = 370; // handle + tabs + full card + padding
+  const expandedTranslateY = -(SHEET_EXPANDED_HEIGHT - SHEET_PEEK_HEIGHT); // -190
   const sheetTranslateY = useRef(new Animated.Value(0)).current;
   const sheetOffsetRef = useRef(0);
   const sheetStartRef = useRef(0);
@@ -118,6 +120,7 @@ export default function SearchScreen({ route }) {
         const shouldExpand = current < expandedTranslateY / 2;
         const target = shouldExpand ? expandedTranslateY : 0;
         sheetOffsetRef.current = target;
+        setIsSheetExpanded(shouldExpand);
         Animated.spring(sheetTranslateY, {
           toValue: target,
           useNativeDriver: true,
@@ -127,6 +130,13 @@ export default function SearchScreen({ route }) {
       },
     })
   ).current;
+
+  useEffect(() => {
+    if (!userLocation || !currentTime || hasAutoSearched.current) return;
+    hasAutoSearched.current = true;
+    handleSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userLocation, currentTime]);
 
   useEffect(() => {
     const initializeLocation = async () => {
@@ -256,11 +266,6 @@ export default function SearchScreen({ route }) {
     return (selectedPreferences[0] || preference || 'urban').toLowerCase();
   };
 
-  const handleSetLocation = () => {
-    const next = { latitude: mapRegion.latitude, longitude: mapRegion.longitude };
-    setCustomLocation(next);
-    fetchWeather(next);
-  };
 
   const handleSearch = async () => {
     await saveSearchToHistory(query);
@@ -429,6 +434,12 @@ export default function SearchScreen({ route }) {
     );
   };
 
+  const renderStatusBadgeOverlay = (result) => {
+    const badge = renderStatusBadge(result);
+    if (!badge) return null;
+    return <View style={styles.statusBadgeOverlay}>{badge}</View>;
+  };
+
   const renderOutsideWeatherBadge = (result) => {
     const indicator = result?.outside_weather_indicator;
     if (!indicator || !indicator.type) return null;
@@ -546,10 +557,6 @@ export default function SearchScreen({ route }) {
                   </ScrollView>
                 </View>
               </View>
-
-                <TouchableOpacity style={styles.setLocationButton} onPress={handleSetLocation}>
-                  <Text style={styles.setLocationText}>SET LOCATION</Text>
-                </TouchableOpacity>
             </View>
           </TouchableWithoutFeedback>
 
@@ -557,11 +564,19 @@ export default function SearchScreen({ route }) {
           <Animated.View
             style={[
               styles.suggestionsPanel,
-              { transform: [{ translateY: sheetTranslateY }] },
+              {
+                height: Math.abs(expandedTranslateY) + SHEET_PEEK_HEIGHT,
+                bottom: expandedTranslateY,
+                transform: [{ translateY: sheetTranslateY }],
+              },
             ]}
           >
             <View style={styles.dragHandleHitArea} {...panResponder.panHandlers}>
-              <View style={styles.dragHandle} />
+              <MaterialIcons
+                name={isSheetExpanded ? 'expand-more' : 'expand-less'}
+                size={28}
+                color="#aaa"
+              />
             </View>
             <View style={styles.tabsRow}>
               <TouchableOpacity
@@ -605,66 +620,91 @@ export default function SearchScreen({ route }) {
                     <View key={result.id} style={styles.resultCard}>
                       {selectedResultId === result.id ? (
                         <View>
-                          <TouchableOpacity onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
-                            <Text style={styles.resultCardName} numberOfLines={2}>{result.name}</Text>
-                            <Text style={styles.resultCardMeta}>Tap to close</Text>
+                          <TouchableOpacity style={styles.expandedCardHeader} onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
+                            <Text style={styles.expandedCardName} numberOfLines={2}>{result.name}</Text>
+                            <MaterialIcons name="expand-more" size={20} color="rgba(255,255,255,0.7)" />
                           </TouchableOpacity>
-                        <ScrollView
-                          style={styles.resultDetails}
-                          contentContainerStyle={styles.resultDetailsContent}
-                          showsVerticalScrollIndicator
-                          persistentScrollbar
-                          keyboardShouldPersistTaps="handled"
-                          nestedScrollEnabled
-                          directionalLockEnabled
-                        >
-                          <Text style={styles.resultDetailText}>{`Lat/Lng: ${result.latitude}, ${result.longitude}`}</Text>
-                          <Text style={styles.resultDetailText}>{`Distance: ${((Number(result.distance_meters ?? 0) / METERS_PER_MILE) || 0).toFixed(2)} mi`}</Text>
-                          <Text style={styles.resultDetailText}>
-                            {`Open status: ${
-                              result.open_now_source === 'skipped_outdoor'
-                                ? 'Outside (not checked)'
-                                : (result.open_now == null ? 'Unknown' : (result.open_now ? 'Open' : 'Closed'))
-                            }`}
-                          </Text>
-                          {result.open_now_source ? (
-                            <Text style={styles.resultDetailText}>{`Open source: ${result.open_now_source}`}</Text>
-                          ) : null}
-                          <Text style={styles.resultDetailText}>{`Overall score: ${(Number(result.final_score) || 0).toFixed(4)}`}</Text>
-                          <Text style={styles.resultDetailText}>{`Base score: ${(Number(result.base_score) || 0).toFixed(4)}`}</Text>
-                          <Text style={styles.resultDetailText}>{`Cosine score: ${(Number(result.cosine_score) || 0).toFixed(4)}`}</Text>
-                          <Text style={styles.resultDetailText}>{`Distance score: ${(Number(result.distance_score) || 0).toFixed(4)}`}</Text>
-                          <Text style={styles.resultDetailText}>{`Category score: ${(Number(result.category_score) || 0).toFixed(4)}`}</Text>
-                          {Array.isArray(result.matched_terms) ? (
-                            <Text style={styles.resultDetailText}>{`Matched terms: ${result.matched_terms.join(', ')}`}</Text>
-                          ) : null}
-                          {showDebug && result.query_weights ? (
-                            <Text style={styles.resultDetailText}>{`Query weights: ${JSON.stringify(result.query_weights)}`}</Text>
-                          ) : null}
-                          {showDebug && result.vector_weights ? (
-                            <Text style={styles.resultDetailText}>{`Vector weights: ${JSON.stringify(result.vector_weights)}`}</Text>
-                          ) : null}
-                          {showDebug && result.matched_weights ? (
-                            <Text style={styles.resultDetailText}>{`Matched weights: ${JSON.stringify(result.matched_weights)}`}</Text>
-                          ) : null}
-                          <Text style={styles.resultDetailText}>{`Categories: ${(result.categories || []).join(', ')}`}</Text>
-                          <Text style={styles.resultDetailText}>
-                            {`Keywords (${(result.keyword_terms || []).length}): ${((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}`}
-                          </Text>
+                          <ScrollView
+                            style={styles.resultDetails}
+                            contentContainerStyle={styles.resultDetailsContent}
+                            showsVerticalScrollIndicator={false}
+                            keyboardShouldPersistTaps="handled"
+                            nestedScrollEnabled
+                            directionalLockEnabled
+                          >
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Distance</Text>
+                              <Text style={styles.expandedMeta}>{((Number(result.distance_meters ?? 0) / METERS_PER_MILE) || 0).toFixed(2)} MI</Text>
+                            </View>
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Coords</Text>
+                              <Text style={styles.expandedMeta}>{result.latitude}, {result.longitude}</Text>
+                            </View>
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Status</Text>
+                              {renderStatusBadge(result) ?? <Text style={styles.expandedMeta}>Unknown</Text>}
+                            </View>
+                            {(result.categories || []).length > 0 && (
+                              <View style={styles.expandedRow}>
+                                <Text style={styles.expandedLabel}>Categories</Text>
+                                <Text style={styles.expandedMeta}>{result.categories.join(', ')}</Text>
+                              </View>
+                            )}
+                            {(result.keyword_terms || []).length > 0 && (
+                              <View style={styles.expandedRow}>
+                                <Text style={styles.expandedLabel}>Keywords</Text>
+                                <Text style={styles.expandedMeta}>{((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}</Text>
+                              </View>
+                            )}
+                            {showDebug ? (
+                              <View style={styles.debugBlock}>
+                                <Text style={styles.debugText}>
+                                  {`Open status: ${
+                                    result.open_now_source === 'skipped_outdoor'
+                                      ? 'Outside (not checked)'
+                                      : (result.open_now == null ? 'Unknown' : (result.open_now ? 'Open' : 'Closed'))
+                                  }`}
+                                </Text>
+                                {result.open_now_source ? (
+                                  <Text style={styles.debugText}>{`Open source: ${result.open_now_source}`}</Text>
+                                ) : null}
+                                <Text style={styles.debugText}>{`Overall score: ${(Number(result.final_score) || 0).toFixed(4)}`}</Text>
+                                <Text style={styles.debugText}>{`Base score: ${(Number(result.base_score) || 0).toFixed(4)}`}</Text>
+                                <Text style={styles.debugText}>{`Cosine score: ${(Number(result.cosine_score) || 0).toFixed(4)}`}</Text>
+                                <Text style={styles.debugText}>{`Distance score: ${(Number(result.distance_score) || 0).toFixed(4)}`}</Text>
+                                <Text style={styles.debugText}>{`Category score: ${(Number(result.category_score) || 0).toFixed(4)}`}</Text>
+                                {Array.isArray(result.matched_terms) ? (
+                                  <Text style={styles.debugText}>{`Matched terms: ${result.matched_terms.join(', ')}`}</Text>
+                                ) : null}
+                                {result.query_weights ? (
+                                  <Text style={styles.debugText}>{`Query weights: ${JSON.stringify(result.query_weights)}`}</Text>
+                                ) : null}
+                                {result.vector_weights ? (
+                                  <Text style={styles.debugText}>{`Vector weights: ${JSON.stringify(result.vector_weights)}`}</Text>
+                                ) : null}
+                                {result.matched_weights ? (
+                                  <Text style={styles.debugText}>{`Matched weights: ${JSON.stringify(result.matched_weights)}`}</Text>
+                                ) : null}
+                              </View>
+                            ) : null}
                             {result.weather_warning ? (
-                              <Text style={styles.warningTextSmall}>{result.weather_warning}</Text>
+                              <View style={[styles.warningTag, { marginTop: 4 }]}>
+                                <Text style={styles.warningTagText}>{result.weather_warning}</Text>
+                              </View>
                             ) : null}
                           </ScrollView>
                         </View>
                       ) : (
                         <TouchableOpacity onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
-                          <>
+                          <View style={styles.resultCardImageContainer}>
                             <Image source={{ uri: result.image_url }} style={styles.resultCardImage} />
+                            {renderStatusBadgeOverlay(result)}
+                          </View>
+                          <View style={styles.resultCardInfo}>
                             <Text style={styles.resultCardName} numberOfLines={2}>{result.name}</Text>
                             {typeof result.distance_meters === 'number' ? (
-                              <Text style={styles.resultCardMeta}>{(result.distance_meters / METERS_PER_MILE).toFixed(2)} mi</Text>
+                              <Text style={styles.resultCardMeta}>{(result.distance_meters / METERS_PER_MILE).toFixed(2)} MI</Text>
                             ) : null}
-                            {renderBadgesRow(result)}
                             {result.weather_warning ? (
                               <View style={styles.warningTag}>
                                 <Text style={styles.warningTagText}>
@@ -672,7 +712,7 @@ export default function SearchScreen({ route }) {
                                 </Text>
                               </View>
                             ) : null}
-                          </>
+                          </View>
                         </TouchableOpacity>
                       )}
 
@@ -684,7 +724,7 @@ export default function SearchScreen({ route }) {
                         <MaterialIcons
                           name={isFavorited(result.id) ? 'favorite' : 'favorite-border'}
                           size={20}
-                          color={isFavorited(result.id) ? '#E8607A' : '#666'}
+                          color={isFavorited(result.id) ? '#E8607A' : '#fff'}
                         />
                       </TouchableOpacity>
                     </View>
@@ -700,51 +740,70 @@ export default function SearchScreen({ route }) {
                     <View key={result.id || result.name} style={styles.resultCard}>
                       {selectedResultId === result.id ? (
                         <View>
-                          <TouchableOpacity onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
-                            <Text style={styles.resultCardName} numberOfLines={2}>{result.name}</Text>
-                            <Text style={styles.resultCardMeta}>Tap to close</Text>
+                          <TouchableOpacity style={styles.expandedCardHeader} onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
+                            <Text style={styles.expandedCardName} numberOfLines={2}>{result.name}</Text>
+                            <MaterialIcons name="expand-more" size={20} color="rgba(255,255,255,0.7)" />
                           </TouchableOpacity>
                           <ScrollView
                             style={styles.resultDetails}
                             contentContainerStyle={styles.resultDetailsContent}
-                            showsVerticalScrollIndicator
-                            persistentScrollbar
+                            showsVerticalScrollIndicator={false}
                             keyboardShouldPersistTaps="handled"
                             nestedScrollEnabled
                             directionalLockEnabled
                           >
-                            <Text style={styles.resultDetailText}>{`Lat/Lng: ${result.latitude}, ${result.longitude}`}</Text>
-                            <Text style={styles.resultDetailText}>{`Distance: ${((Number(result.distance_meters ?? 0) / METERS_PER_MILE) || 0).toFixed(2)} mi`}</Text>
-                            <Text style={styles.resultDetailText}>{`Overall score: ${(Number(result.final_score) || 0).toFixed(4)}`}</Text>
-                            <Text style={styles.resultDetailText}>{`Base score: ${(Number(result.base_score) || 0).toFixed(4)}`}</Text>
-                            <Text style={styles.resultDetailText}>{`Cosine score: ${(Number(result.cosine_score) || 0).toFixed(4)}`}</Text>
-                            <Text style={styles.resultDetailText}>{`Distance score: ${(Number(result.distance_score) || 0).toFixed(4)}`}</Text>
-                            <Text style={styles.resultDetailText}>{`Category score: ${(Number(result.category_score) || 0).toFixed(4)}`}</Text>
-                            {Array.isArray(result.matched_terms) ? (
-                              <Text style={styles.resultDetailText}>{`Matched terms: ${result.matched_terms.join(', ')}`}</Text>
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Distance</Text>
+                              <Text style={styles.expandedMeta}>{((Number(result.distance_meters ?? 0) / METERS_PER_MILE) || 0).toFixed(2)} MI</Text>
+                            </View>
+                            <View style={styles.expandedRow}>
+                              <Text style={styles.expandedLabel}>Coords</Text>
+                              <Text style={styles.expandedMeta}>{result.latitude}, {result.longitude}</Text>
+                            </View>
+                            {(result.categories || []).length > 0 && (
+                              <View style={styles.expandedRow}>
+                                <Text style={styles.expandedLabel}>Categories</Text>
+                                <Text style={styles.expandedMeta}>{result.categories.join(', ')}</Text>
+                              </View>
+                            )}
+                            {(result.keyword_terms || []).length > 0 && (
+                              <View style={styles.expandedRow}>
+                                <Text style={styles.expandedLabel}>Keywords</Text>
+                                <Text style={styles.expandedMeta}>{((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}</Text>
+                              </View>
+                            )}
+                            {showDebug ? (
+                              <View style={styles.debugBlock}>
+                                <Text style={styles.debugText}>{`Overall score: ${(Number(result.final_score) || 0).toFixed(4)}`}</Text>
+                                <Text style={styles.debugText}>{`Base score: ${(Number(result.base_score) || 0).toFixed(4)}`}</Text>
+                                <Text style={styles.debugText}>{`Cosine score: ${(Number(result.cosine_score) || 0).toFixed(4)}`}</Text>
+                                <Text style={styles.debugText}>{`Distance score: ${(Number(result.distance_score) || 0).toFixed(4)}`}</Text>
+                                <Text style={styles.debugText}>{`Category score: ${(Number(result.category_score) || 0).toFixed(4)}`}</Text>
+                                {Array.isArray(result.matched_terms) ? (
+                                  <Text style={styles.debugText}>{`Matched terms: ${result.matched_terms.join(', ')}`}</Text>
+                                ) : null}
+                                {result.query_weights ? (
+                                  <Text style={styles.debugText}>{`Query weights: ${JSON.stringify(result.query_weights)}`}</Text>
+                                ) : null}
+                                {result.vector_weights ? (
+                                  <Text style={styles.debugText}>{`Vector weights: ${JSON.stringify(result.vector_weights)}`}</Text>
+                                ) : null}
+                                {result.matched_weights ? (
+                                  <Text style={styles.debugText}>{`Matched weights: ${JSON.stringify(result.matched_weights)}`}</Text>
+                                ) : null}
+                              </View>
                             ) : null}
-                            {showDebug && result.query_weights ? (
-                              <Text style={styles.resultDetailText}>{`Query weights: ${JSON.stringify(result.query_weights)}`}</Text>
-                            ) : null}
-                            {showDebug && result.vector_weights ? (
-                              <Text style={styles.resultDetailText}>{`Vector weights: ${JSON.stringify(result.vector_weights)}`}</Text>
-                            ) : null}
-                            {showDebug && result.matched_weights ? (
-                              <Text style={styles.resultDetailText}>{`Matched weights: ${JSON.stringify(result.matched_weights)}`}</Text>
-                            ) : null}
-                            <Text style={styles.resultDetailText}>{`Categories: ${(result.categories || []).join(', ')}`}</Text>
-                            <Text style={styles.resultDetailText}>
-                              {`Keywords (${(result.keyword_terms || []).length}): ${((result.keyword_terms_marked || result.keyword_terms) || []).join(', ')}`}
-                            </Text>
                           </ScrollView>
                         </View>
                       ) : (
                         <TouchableOpacity onPress={() => handleSelectResult(result)} activeOpacity={0.85}>
-                          <>
+                          <View style={styles.resultCardImageContainer}>
                             <Image source={{ uri: result.image_url }} style={styles.resultCardImage} />
+                            {renderStatusBadgeOverlay(result)}
+                          </View>
+                          <View style={styles.resultCardInfo}>
                             <Text style={styles.resultCardName} numberOfLines={2}>{result.name}</Text>
-                            {renderBadgesRow(result)}
-                          </>
+                          </View>
                         </TouchableOpacity>
                       )}
 
@@ -756,7 +815,7 @@ export default function SearchScreen({ route }) {
                         <MaterialIcons
                           name={isFavorited(result.id) ? 'favorite' : 'favorite-border'}
                           size={20}
-                          color={isFavorited(result.id) ? '#E8607A' : '#666'}
+                          color={isFavorited(result.id) ? '#E8607A' : '#fff'}
                         />
                       </TouchableOpacity>
                     </View>
